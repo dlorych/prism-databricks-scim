@@ -10,6 +10,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.meesho.prismdatabricksapi.configs.ApplicationProperties;
 import org.json.*;
 
 public class DatabricksServicePrincipalManagement  {
@@ -49,7 +50,7 @@ public class DatabricksServicePrincipalManagement  {
 
         return bool;
     }
-    public String ServicePrincipalBySCIM(String display_name) throws IOException, JSONException {
+    public String ServicePrincipalBySCIM(String display_name,String group_id) throws IOException, JSONException {
             String service_principal = null;
             URL url = new URL("https://meesho-data-intelligence-prod.cloud.databricks.com/api/2.0/preview/scim/v2/ServicePrincipals");
             HttpURLConnection http = (HttpURLConnection) url.openConnection();
@@ -58,9 +59,9 @@ public class DatabricksServicePrincipalManagement  {
             http.setRequestProperty("Content-type", "application/scim+json");
             http.setRequestProperty("Authorization", "Basic bmlzaGNoYXkuYWdhcndhbEBtZWVzaG8uY29tOmtsbW4yODE4MzJRIw==");
             String data = String.format("{ \"displayName\":\"%1$s\", " +
-                    "\"groups\": " + "[{\"value\": \"577690862496256\"}]," +
+                    "\"groups\": " + "[{\"value\": \"%2$s\"}]," +
                     "\"schemas\":" + "[\"urn:ietf:params:scim:schemas:core:2.0:ServicePrincipal\" ]," +
-                    "\"active\": true}", display_name);
+                    "\"active\": true}", display_name,group_id);
 
             byte[] out = data.getBytes(StandardCharsets.UTF_8);
 
@@ -95,15 +96,20 @@ public class DatabricksServicePrincipalManagement  {
 
     public static void main(String[] args) throws IOException, JSONException {
         DatabricksServicePrincipalManagement scim = new DatabricksServicePrincipalManagement();
+        ApplicationProperties properties= new ApplicationProperties();
+        String databricks_host_url = properties.getValue("databricks_host");
+        String databricks_master_access_token = properties.getValue("databricks_master_access_token");
+        String databricks_group_id = properties.getValue("databricks_group_id");
+
         //Callback function for getting the user mail id from the prism UI
-        String prism_owner_mail = "nikhil.srivastava@meesho.com";
-        String display_name = prism_owner_mail.replace("@meesho.com", "_serviceprincipal");
+        String prism_owner_mail = "nikhil.s@meesho.com";
+        String display_name = prism_owner_mail.replace("@meesho.com", "-serviceprincipal");
         Boolean b= scim.GetListServicePrincipal(display_name);
         if(b){
             System.out.println("Databricks Service Principal already exist corresponding to the user "+prism_owner_mail + " on the AWS Databricks");
         }
         else {
-            String service_principal = scim.ServicePrincipalBySCIM(display_name);
+            String service_principal = scim.ServicePrincipalBySCIM(display_name,databricks_group_id);
             System.out.println("Your Databricks Service Principal Username is " + service_principal);
         }
 
