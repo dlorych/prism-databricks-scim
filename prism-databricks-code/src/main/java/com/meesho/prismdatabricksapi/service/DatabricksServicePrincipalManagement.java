@@ -65,6 +65,11 @@ public class DatabricksServicePrincipalManagement  {
             String databricks_master_access_token= String.format("Basic %1$s",properties.getValue("databricks_master_access_token"));
             String scim_endpoint= String.format("%1$sapi/2.0/preview/scim/v2/ServicePrincipals",databricks_host);
             String service_principal = null;
+            String application_id=null;
+            Boolean active=false;
+            String service_principal_id=null;
+            String group_name=null;
+            String group_id=null;
             URL url = new URL(scim_endpoint);
             HttpURLConnection http = (HttpURLConnection) url.openConnection();
             http.setRequestMethod("POST");
@@ -93,12 +98,28 @@ public class DatabricksServicePrincipalManagement  {
                         String response_output_json = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(json_obj);
                         System.out.println("\n" + response_output_json);
                         JSONObject json_val = null;
+                        JSONObject json_val_=null;
                         try {
                             json_val = new JSONObject(response_output);
                         } catch (JSONException e) {
                             throw new RuntimeException(e);
                         }
                         service_principal = json_val.getString("displayName");
+                        application_id =json_val.getString("applicationId");
+                        active= json_val.getBoolean("active");
+                        service_principal_id=json_val.getString("service_principal_id");
+                        try {
+                            json_val_ = new JSONObject( json_val.getString("groups"));
+                        } catch (JSONException e) {
+                            throw new RuntimeException(e);
+                        }
+                        if (json_val_.has("display")) {
+                            group_name = json_val.getString("display");
+                        }
+                        if(json_val_.has("value")) {
+                            group_id = json_val.getString("value");
+                        }
+
                     } else {
                         System.out.print("No output response is generated from calling SCIM Token API 2.0");
                     }
@@ -137,7 +158,7 @@ public class DatabricksServicePrincipalManagement  {
         DatabricksServicePrincipalManagement scim = new DatabricksServicePrincipalManagement();
 
         //Callback function for getting the user mail id from the prism UI
-        String prism_owner_mail = "test-2@meesho.com";
+        String prism_owner_mail = "ankit.kalra@meesho.com";
         String display_name = prism_owner_mail.replace("@meesho.com", "-serviceprincipal");
         Boolean b= scim.GetListServicePrincipal(display_name);
         if(b){
