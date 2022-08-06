@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -15,8 +16,64 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.meesho.prismdatabricksapi.configs.ApplicationProperties;
 import org.json.*;
 
-public class DatabricksServicePrincipalManagement  {
+public class DatabricksServicePrincipalManagement {
     private ApplicationProperties properties;
+
+    public void GetServicePrincipalByID(String application_id) throws IOException {
+        this.properties = new ApplicationProperties();
+        String databricks_host = properties.getValue("databricks_host");
+        String databricks_master_access_token = String.format("Basic %1$s", properties.getValue("databricks_master_access_token"));
+        String scim_endpoint = String.format("%1$s/api/2.0/preview/scim/v2/ServicePrincipals/%2$s", databricks_host, application_id);
+        URL url = new URL(scim_endpoint);
+        HttpURLConnection http = (HttpURLConnection) url.openConnection();
+        http.setRequestMethod("GET");
+        http.setDoOutput(true);
+        http.setRequestProperty("Content-type", "application/scim+json");
+        http.setRequestProperty("Authorization", databricks_master_access_token);
+        int code = http.getResponseCode();
+        if (code == 200) {
+            System.out.println("HTTP Response Status Code " + http.getResponseCode());
+            System.out.println("HTTP Response Status Message " + http.getResponseMessage());
+            System.out.println("Service Principal detail fetched successfully");
+            BufferedReader br = new BufferedReader(new InputStreamReader(
+                    (http.getInputStream())));
+            String response_output;
+            while ((response_output = br.readLine()) != null) {
+                if (!Objects.isNull(response_output) || response_output != null || !response_output.isEmpty() || !response_output.trim().isEmpty()) {
+                    ObjectMapper mapper = new ObjectMapper();
+                    Object json_obj = mapper.readValue(response_output, Object.class);
+                    String response_output_json = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(json_obj);
+                    System.out.print("Service Principal Details for Application ID "+application_id);
+                    System.out.println(response_output_json);
+                } else {
+                    System.out.print("No output response is generated from calling SCIM GetServicePrincipalByID API 2.0");
+                }
+            }
+        } else if (code == 401 || code == 403) {
+            System.out.println("HTTP Response Status Code " + http.getResponseCode() + " HTTP Response Status Message " + http.getResponseMessage());
+            System.out.println("Request is unauthorised because it lacks valid authentication credentials for the requested resource. Hence, not able to get SPN detail for Application ID "+application_id);
+            System.exit(1);
+        } else if (code == 404) {
+            System.out.println("HTTP Response Status Code " + http.getResponseCode() + " HTTP Response Status Message " + http.getResponseMessage());
+            System.out.println("The requested resource does not exist. Hence, not able to get SPN detail for Application ID "+application_id);
+            System.exit(1);
+        } else if (code == 400) {
+            System.out.println("HTTP Response Status Code " + http.getResponseCode() + " HTTP Response Status Message " + http.getResponseMessage());
+            System.out.println("The request is malformed requested by the client user. Hence, not able to get SPN detail for Application ID "+application_id);
+            System.exit(1);
+        } else if (code == 500) {
+            System.out.println("HTTP Response Status Code " + http.getResponseCode() + " HTTP Response Status Message " + http.getResponseMessage());
+            System.out.println("The request is not handled correctly due to a server error. Hence, not able to get SPN detail for Application ID "+application_id);
+            System.exit(1);
+        } else {
+            System.out.println("HTTP Response Status Code " + http.getResponseCode() + " HTTP Response Status Message " + http.getResponseMessage());
+            System.out.println("Bad Request, Not able to call Databricks SCIM API. Hence, not able to get SPN detail for Application ID "+application_id);
+            System.exit(1);
+        }
+
+        http.disconnect();
+
+    }
 
     public boolean GetListServicePrincipal(String service_principal_user) throws IOException,JSONException{
         this.properties = new ApplicationProperties();
@@ -55,7 +112,7 @@ public class DatabricksServicePrincipalManagement  {
 
             }
             else{
-                System.out.print("No output response is generated from calling SCIM Token API 2.0");
+                System.out.print("No output response is generated from calling SCIM ListServicePrincipal API 2.0");
             }
         }
         Boolean bool = al.contains(service_principal_user);
@@ -101,7 +158,8 @@ public class DatabricksServicePrincipalManagement  {
                     ObjectMapper mapper = new ObjectMapper();
                     Object json_obj = mapper.readValue(response_output, Object.class);
                     String response_output_json = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(json_obj);
-                    System.out.println("\n" + response_output_json);
+                    System.out.print("Service Principal Details for display name "+display_name);
+                    System.out.println(response_output_json);
                     JSONObject json_val = null;
                     JSONObject json_val_ = null;
                     JSONArray json_array_ = null;
@@ -136,28 +194,28 @@ public class DatabricksServicePrincipalManagement  {
                     map.put("owner_email",owner_email);
 
                 } else {
-                    System.out.print("No output response is generated from calling SCIM Token API 2.0");
+                    System.out.print("No output response is generated from calling SCIM CreateServicePrincipal API 2.0");
                 }
             }
         } else if (code == 401 || code == 403) {
             System.out.println("HTTP Response Status Code " + http.getResponseCode() + " HTTP Response Status Message " + http.getResponseMessage());
-            System.out.println("Request is unauthorised because it lacks valid authentication credentials for the requested resource");
+            System.out.println("Request is unauthorised because it lacks valid authentication credentials for the requested resource. Hence, not able to create SPN for display_name "+display_name);
             System.exit(1);
         } else if (code == 404) {
             System.out.println("HTTP Response Status Code " + http.getResponseCode() + " HTTP Response Status Message " + http.getResponseMessage());
-            System.out.println("The requested resource does not exist");
+            System.out.println("The requested resource does not exist. Hence, not able to create SPN for display_name "+display_name);
             System.exit(1);
         } else if (code == 400) {
             System.out.println("HTTP Response Status Code " + http.getResponseCode() + " HTTP Response Status Message " + http.getResponseMessage());
-            System.out.println("The request is malformed requested by the client user");
+            System.out.println("The request is malformed requested by the client user. Hence, not able to create SPN for display_name "+display_name);
             System.exit(1);
         } else if (code == 500) {
             System.out.println("HTTP Response Status Code " + http.getResponseCode() + " HTTP Response Status Message " + http.getResponseMessage());
-            System.out.println("The request is not handled correctly due to a server error.");
+            System.out.println("The request is not handled correctly due to a server error. Hence, not able to create SPN for display_name "+display_name);
             System.exit(1);
         } else {
             System.out.println("HTTP Response Status Code " + http.getResponseCode() + " HTTP Response Status Message " + http.getResponseMessage());
-            System.out.println("Bad Request, Not able to call Databricks SCIM API ");
+            System.out.println("Bad Request, Not able to call Databricks SCIM API. Hence, not able to create SPN for display_name "+display_name);
             System.exit(1);
         }
         http.disconnect();
