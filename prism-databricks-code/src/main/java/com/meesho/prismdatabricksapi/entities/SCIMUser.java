@@ -22,6 +22,8 @@ public class SCIMUser {
     String service_principal_id;
     @Column(name = "active")
     Boolean active;
+    @Column(name="owner_id")
+    String owner_id;
 
     @Column(name = "group_name")
     String group_name;
@@ -36,6 +38,13 @@ public class SCIMUser {
     @Column(name = "token_creation_time")
     Date token_creation_time;
 
+    public void setApplication_id(String application_id) {
+        this.application_id = application_id;
+    }
+
+    public String getApplication_id() {
+        return application_id;
+    }
     public void setDisplay_name(String display_name) {
         this.display_name = display_name;
     }
@@ -50,13 +59,7 @@ public class SCIMUser {
     public String getSpn_token() {
         return spn_token;
     }
-    public void setApplication_id(String application_id) {
-        this.application_id = application_id;
-    }
 
-    public String getApplication_id() {
-        return application_id;
-    }
     public void setService_principal_id(String service_principal_id) {
         this.service_principal_id = service_principal_id;
     }
@@ -120,6 +123,19 @@ public class SCIMUser {
     public Date getToken_creation_time() {
         return token_creation_time;
     }
+    public void setOwner_id(){
+        this.owner_id=owner_id;
+    }
+    public String getOwner_id(){
+        return owner_id;
+    }
+    public String toString(){//overriding the toString() method
+        return application_id+" "+display_name+" "+spn_token+" "+owner_email+" "+owner_id+" "+service_principal_id+" "+active+" "+group_name+" "+group_id+" "+token_owner+" "+token_creation_time+" "+token_expiry_time+" "+token_id;
+    }
+
+    public SCIMUser() {
+
+    }
     public SCIMUser(String spn_token, String display_name, String application_id, String owner_email, String service_principal_id, Boolean active, String group_name, String group_id, String token_id, Date token_expiry_time, String token_owner,
                     Date token_creation_time)
     {
@@ -137,7 +153,9 @@ public class SCIMUser {
      this.token_id=token_id;
      this.token_owner=token_owner;
     }
-    public SCIMUser() {
 
-    }
+
+
+
+
 }
