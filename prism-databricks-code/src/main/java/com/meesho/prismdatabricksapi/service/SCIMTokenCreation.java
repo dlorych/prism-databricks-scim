@@ -9,10 +9,8 @@ import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Objects;
+import java.util.*;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.meesho.prismdatabricksapi.configs.ApplicationProperties;
 import org.json.*;
@@ -69,12 +67,13 @@ public class SCIMTokenCreation {
                     } catch (JSONException e) {
                         throw new RuntimeException(e);
                     }
-                    SimpleDateFormat dateFormat = new SimpleDateFormat("dd:MM:yy:HH:mm:ss");
-                    token_creation_time = dateFormat.parse(dateFormat.format(json_object_.getInt("creation_time")));
+                    SimpleDateFormat dateFormat = new SimpleDateFormat();
+                    dateFormat.setTimeZone(TimeZone.getTimeZone("IST"));
+                    token_creation_time = dateFormat.parse(dateFormat.format(json_object_.getDouble("creation_time")));
                     token_id = json_object_.getString("token_id");
                     owner_id = json_object_.getString("owner_id");
                     token_owner = json_object_.getString("created_by_username");
-                    token_expiry_time = dateFormat.parse(dateFormat.format(json_object_.getInt("expiry_time")));
+                    token_expiry_time = dateFormat.parse(dateFormat.format(json_object_.getDouble("expiry_time")));
                     token_map = new HashMap<Object, Object>();
                     token_map.put("spn_token",token_value);
                     token_map.put("token_creation_time",token_creation_time);

@@ -22,7 +22,7 @@ public interface SCIMUserRepo extends JpaRepository<SCIMUser,String> {
     @Transactional
     @Modifying()
     @Query(value="update prod.scim_user set display_name = ?1, owner_email= ?2, service_principal_id=?3,active=?4,group_name=?5,group_id=?6 where application_id = ?7 ",nativeQuery = true)
-    int updateSCIM(String display_name, String owner_email, String owner_id, Boolean active, String group_name, String group_id, String application_id );
+    int updateSPN(String display_name, String owner_email, String owner_id, Boolean active, String group_name, String group_id, String application_id );
 
 
 }

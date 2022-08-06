@@ -34,7 +34,7 @@ public class SpringBootAppApplication implements CommandLineRunner {
     }
     public void printAllUsers(Iterable < SCIMUser > spn, String msg) {
         for (SCIMUser users_list: spn) {
-            System.out.print(msg);
+            System.out.print(msg+"\n");
             System.out.println(users_list);
         }
         System.out.println();
@@ -61,8 +61,8 @@ public class SpringBootAppApplication implements CommandLineRunner {
             SCIMUser scimUser = new SCIMUser();
             scimUser.setApplication_id(obj.application_id);
             object.save(scimUser);
-            int update_records_scim = object.updateSCIM((String) obj.scim_map.get("service_principal"), (String) obj.scim_map.get("owner_email"),(String) obj.scim_map.get("service_principal_id"), Boolean.parseBoolean((String) obj.scim_map.get("active")), (String) obj.scim_map.get("group_name"), (String) obj.scim_map.get("group_id"), obj.application_id);
-            int update_records_token= object.updateServicePrincipalToken((String) dbx_token.token_map.get("token_id"), (String) dbx_token.token_map.get("spn_token"), (Date) dbx_token.token_map.get("token_expiry_time"), (Date) dbx_token.token_map.get("token_expiry_time"), (String) dbx_token.token_map.get("token_owner"), (String) dbx_token.token_map.get("owner_id"),dbx_token.application_id);
+            int update_records_scim = object.updateSPN((String) obj.scim_map.get("service_principal"), (String) obj.scim_map.get("owner_email"),(String) obj.scim_map.get("service_principal_id"), Boolean.parseBoolean((String) obj.scim_map.get("active")), (String) obj.scim_map.get("group_name"), (String) obj.scim_map.get("group_id"), obj.application_id);
+            int update_records_token= object.updateServicePrincipalToken((String) dbx_token.token_map.get("token_id"), (String) dbx_token.token_map.get("spn_token"), (Date) dbx_token.token_map.get("token_expiry_time"), (Date) dbx_token.token_map.get("token_creation_time"), (String) dbx_token.token_map.get("token_owner"), (String) dbx_token.token_map.get("owner_id"),dbx_token.application_id);
             if (update_records_scim == 1 && update_records_token==1) {
                 System.out.println("Storing the records into scim_user table for application_id " + obj.application_id);
                 Optional<SCIMUser> user = object.findById(obj.application_id);
@@ -73,7 +73,6 @@ public class SpringBootAppApplication implements CommandLineRunner {
             List<SCIMUser> users_list = object.findAll();
             printAllUsers(users_list, "Information of all SCIM Users");
         }
-
 
 
     }
