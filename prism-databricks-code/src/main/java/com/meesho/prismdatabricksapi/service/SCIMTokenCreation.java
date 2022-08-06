@@ -37,7 +37,7 @@ public class SCIMTokenCreation {
         http.setRequestProperty("Authorization", databricks_master_access_token);
         String data = String.format("{\n  \"application_id\": \"%1$s\",\n  \"comment\":" +
                 " \"This the token for the Service Principal user %2$s\",\n  " +
-                "\"lifetime_seconds\":  69120000 \n}",scim_application_id, service_principal_display_name);
+                "\"lifetime_seconds\":  138240000 \n}",scim_application_id, service_principal_display_name);
         byte[] out = data.getBytes(StandardCharsets.UTF_8);
         OutputStream stream = http.getOutputStream();
         stream.write(out);

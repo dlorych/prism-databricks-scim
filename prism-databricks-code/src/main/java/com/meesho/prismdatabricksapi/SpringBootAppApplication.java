@@ -49,8 +49,10 @@ public class SpringBootAppApplication implements CommandLineRunner {
         DatabricksServicePrincipalManagement scim = new DatabricksServicePrincipalManagement();
         SCIMTokenCreation scim_obj = new SCIMTokenCreation();
         Boolean b = scim.GetListServicePrincipal(display_name);
-        if (!b) {
+        if (b) {
             System.out.println("Databricks Service Principal already exist corresponding to the user " + prism_owner_mail + " on the AWS Databricks");
+            System.out.println("Application ID for the Service Principal ");
+            System.out.println(object.getSPNInfo(display_name));
         }
         else {
             DatabricksSCIM obj =scim.ServicePrincipalBySCIM(display_name,prism_owner_mail);
@@ -60,6 +62,7 @@ public class SpringBootAppApplication implements CommandLineRunner {
             System.out.print("Your token corresponding to your service principal "+ obj.service_principal+" is"+ dbx_token.token_map.get("token_value"));
             SCIMUser scimUser = new SCIMUser();
             scimUser.setApplication_id(obj.application_id);
+            System.out.println("Storing the primary key application_id");
             object.save(scimUser);
             int update_records_scim = object.updateSPN((String) obj.scim_map.get("service_principal"), (String) obj.scim_map.get("owner_email"),(String) obj.scim_map.get("service_principal_id"), Boolean.parseBoolean((String) obj.scim_map.get("active")), (String) obj.scim_map.get("group_name"), (String) obj.scim_map.get("group_id"), obj.application_id);
             int update_records_token= object.updateServicePrincipalToken((String) dbx_token.token_map.get("token_id"), (String) dbx_token.token_map.get("spn_token"), (Date) dbx_token.token_map.get("token_expiry_time"), (Date) dbx_token.token_map.get("token_creation_time"), (String) dbx_token.token_map.get("token_owner"), (String) dbx_token.token_map.get("owner_id"),dbx_token.application_id);
@@ -67,6 +70,7 @@ public class SpringBootAppApplication implements CommandLineRunner {
                 System.out.println("Storing the records into scim_user table for application_id " + obj.application_id);
                 Optional<SCIMUser> user = object.findById(obj.application_id);
                 printUsers(Arrays.asList(user), "Service Principal User Information");
+                System.out.println("Records updated on scim_user table "+update_records_scim);
             } else {
                 System.out.println("Failed to update the records on scim_user table in metastore database");
             }

@@ -13,6 +13,11 @@ import java.util.*;
 public interface SCIMUserRepo extends JpaRepository<SCIMUser,String> {
     Optional<SCIMUser> findById(String application_id);
 
+
+    @Transactional
+    @Query(value="select distinct application_id from prod.scim_user where display_name = ?1 ",nativeQuery = true)
+    List getSPNInfo(String display_name);
+
     @Transactional
     @Modifying
     @Query(value="update prod.scim_user set token_id = ?1, spn_token= ?2, token_expiry_time=?3,token_creation_time=?4,token_owner=?5, owner_id=?6 where application_id = ?7",nativeQuery = true)
