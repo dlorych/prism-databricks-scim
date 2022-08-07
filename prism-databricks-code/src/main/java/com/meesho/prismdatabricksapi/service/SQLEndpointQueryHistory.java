@@ -77,10 +77,10 @@ public class SQLEndpointQueryHistory {
         }
 
     }
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) {
+        // testing the Query History API Call
         SQLEndpointQueryHistory cluster_obj= new SQLEndpointQueryHistory();
         cluster_obj.SPNQueryHistory("6457562551823152");
-
 
 
     }
