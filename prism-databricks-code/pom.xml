@@ -57,6 +57,11 @@
             <artifactId>trino-jdbc</artifactId>
             <version>370</version>
         </dependency>
+        <dependency>
+            <groupId>com.konghq</groupId>
+            <artifactId>unirest-java</artifactId>
+            <version>3.13.6</version>
+        </dependency>
         <!-- https://mvnrepository.com/artifact/io.trino/trino-jdbc -->
         <dependency>
             <groupId>com.meesho</groupId>
@@ -89,15 +94,15 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <configuration>
-                    <source>8</source>
-                    <target>8</target>
+                    <source>11</source>
+                    <target>11</target>
                 </configuration>
             </plugin>
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
                 <configuration>
-                    <mainClass>com.meesho.prismdatabricksapi.service.ServicePrincipalCreation</mainClass>
+                    <mainClass>com.meesho.prismdatabricksapi.SpringBootAppApplication</mainClass>
 
                 </configuration>
             </plugin>

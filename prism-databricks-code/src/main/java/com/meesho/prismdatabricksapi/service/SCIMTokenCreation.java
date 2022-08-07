@@ -43,6 +43,7 @@ public class SCIMTokenCreation {
         stream.write(out);
         int code = http.getResponseCode();
         if(code==200 || code==201){
+            System.out.println("HTTP Response for Databricks SCIM Token API Endpoint /api/2.0/token-management/on-behalf-of/token");
             System.out.println("HTTP Response Status Code " + http.getResponseCode());
             System.out.println("HTTP Response Status Message " + http.getResponseMessage());
             BufferedReader br = new BufferedReader(new InputStreamReader(
@@ -122,17 +123,21 @@ public class SCIMTokenCreation {
         String prism_owner_mail = "test.s@meesho.com";
         String display_name = prism_owner_mail.replace("@meesho.com", "-serviceprincipal");
         DatabricksServicePrincipalManagement scim = new DatabricksServicePrincipalManagement();
+        DatabricksSCIMGroups dbx_group= new DatabricksSCIMGroups();
         SCIMTokenCreation scim_obj = new SCIMTokenCreation();
         Boolean b= scim.GetListServicePrincipal(display_name);
         if(b){
             System.out.println("Databricks Service Principal already exist corresponding to the user "+prism_owner_mail + " on the AWS Databricks");
         }
         else {
-            DatabricksSCIM obj =scim.ServicePrincipalBySCIM(display_name,prism_owner_mail);
+            String databricks_group_id=dbx_group.GetDatabricksGroupID();
+            dbx_group.GetGroupDetailByID(databricks_group_id);
+            DatabricksSCIM obj =scim.ServicePrincipalBySCIM(display_name,prism_owner_mail,databricks_group_id);
             System.out.println("Your Databricks Service Principal Username is " + obj.service_principal );
             System.out.println("Your Databricks Service Principal Application ID is " + obj.application_id );
             DatabricksSCIM dbx_token= scim_obj.ServicePrincipalToken(obj.application_id, obj.service_principal);
             System.out.print("Your token corresponding to your service principal "+ obj.service_principal+" is"+ dbx_token.token_map.get("token_value"));
+
         }
 
 

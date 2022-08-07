@@ -26,10 +26,11 @@ public class DatabricksServicePrincipalManagement {
         HttpURLConnection http = (HttpURLConnection) url.openConnection();
         http.setRequestMethod("GET");
         http.setDoOutput(true);
-        http.setRequestProperty("Content-type", "application/scim+json");
+        http.setRequestProperty("Content-type", "application/json");
         http.setRequestProperty("Authorization", databricks_master_access_token);
         int code = http.getResponseCode();
         if (code == 200) {
+            System.out.println("HTTP Response for Databricks GetServicePrincipalByID API Endpoint /api/2.0/preview/scim/v2/ServicePrincipals/{id}");
             System.out.println("HTTP Response Status Code " + http.getResponseCode());
             System.out.println("HTTP Response Status Message " + http.getResponseMessage());
             System.out.println("Service Principal detail fetched successfully");
@@ -84,6 +85,7 @@ public class DatabricksServicePrincipalManagement {
         http.setDoOutput(true);
         http.setRequestProperty("Content-type", "application/scim+json");
         http.setRequestProperty("Authorization", databricks_master_access_token);
+        System.out.println("HTTP Response for Databricks GetServicePrincipals API Endpoint /api/2.0/preview/scim/v2/ServicePrincipals ");
         System.out.println("HTTP Response Status Code "+  http.getResponseCode());
         System.out.println("HTTP Response Status Message "+ http.getResponseMessage());
         BufferedReader br = new BufferedReader(new InputStreamReader(
@@ -118,7 +120,7 @@ public class DatabricksServicePrincipalManagement {
         return bool;
     }
 
-    public DatabricksSCIM ServicePrincipalBySCIM(String display_name,String owner_email) throws IOException, JSONException {
+    public DatabricksSCIM ServicePrincipalBySCIM(String display_name,String owner_email,String databricks_group_id) throws IOException, JSONException {
         this.properties = new ApplicationProperties();
         String databricks_host = properties.getValue("databricks_host");
         String databricks_master_access_token = String.format("Basic %1$s", properties.getValue("databricks_master_access_token"));
@@ -139,12 +141,13 @@ public class DatabricksServicePrincipalManagement {
         String data = String.format("{ \"displayName\":\"%1$s\", " +
                 "\"groups\": " + "[{\"value\": \"%2$s\"}]," +
                 "\"schemas\":" + "[\"urn:ietf:params:scim:schemas:core:2.0:ServicePrincipal\" ]," +
-                "\"active\": true}", display_name, properties.getValue("databricks_group_id"));
+                "\"active\": true}", display_name, databricks_group_id);
         byte[] out = data.getBytes(StandardCharsets.UTF_8);
         OutputStream stream = http.getOutputStream();
         stream.write(out);
         int code = http.getResponseCode();
         if (code == 200 || code == 201) {
+            System.out.println("HTTP Response for Databricks SCIM API Endpoint /api/2.0/preview/scim/v2/ServicePrincipals");
             System.out.println("HTTP Response Status Code " + http.getResponseCode());
             System.out.println("HTTP Response Status Message " + http.getResponseMessage());
             System.out.println("Service Principal is created successfully");
@@ -226,13 +229,17 @@ public class DatabricksServicePrincipalManagement {
         String prism_owner_mail = "ankeeta.s@meesho.com";
         String display_name = prism_owner_mail.replace("@meesho.com", "-serviceprincipal");
         DatabricksServicePrincipalManagement scim = new DatabricksServicePrincipalManagement();
+        DatabricksSCIMGroups dbx_group= new DatabricksSCIMGroups();
         Boolean b= scim.GetListServicePrincipal(display_name);
         if(!b){
             System.out.println("Databricks Service Principal already exist corresponding to the user "+prism_owner_mail + " on the AWS Databricks");
         }
         else {
-            DatabricksSCIM obj =scim.ServicePrincipalBySCIM(display_name,prism_owner_mail);
-            System.out.println("Your Databricks Service Principal Username is " + obj.service_principal);
+            String databricks_group_id=dbx_group.GetDatabricksGroupID();
+            dbx_group.GetGroupDetailByID(databricks_group_id);
+           DatabricksSCIM obj =scim.ServicePrincipalBySCIM(display_name,prism_owner_mail,databricks_group_id);
+           System.out.println("Your Databricks Service Principal Username is " + obj.service_principal);
+            System.out.println("Your Databricks Service Principal Application ID is " + obj.application_id );
         }
 
 

@@ -2,9 +2,7 @@ package com.meesho.prismdatabricksapi;
 
 import com.meesho.prismdatabricksapi.entities.SCIMUser;
 import com.meesho.prismdatabricksapi.repositories.SCIMUserRepo;
-import com.meesho.prismdatabricksapi.service.DatabricksSCIM;
-import com.meesho.prismdatabricksapi.service.DatabricksServicePrincipalManagement;
-import com.meesho.prismdatabricksapi.service.SCIMTokenCreation;
+import com.meesho.prismdatabricksapi.service.*;
 import org.json.JSONException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
@@ -41,21 +39,25 @@ public class SpringBootAppApplication implements CommandLineRunner {
     public void run(String... args) throws Exception {
 
         //Callback function for getting the user mail id from the prism UI
-        String prism_owner_mail = "dbx_token1@meesho.com";
+        String prism_owner_mail = "dbx_token@meesho.com";
+
         String display_name = prism_owner_mail.replace("@meesho.com", "-serviceprincipal");
+        DatabricksSCIMGroups dbx_group= new DatabricksSCIMGroups();
         DatabricksServicePrincipalManagement scim = new DatabricksServicePrincipalManagement();
         SCIMTokenCreation scim_obj = new SCIMTokenCreation();
         Boolean b = scim.GetListServicePrincipal(display_name);
-        if (b) {
+        if (!b) {
             System.out.println("Databricks Service Principal already exist corresponding to the user " + prism_owner_mail + " on the AWS Databricks");
-            Collection list= object.getSPNInfo(display_name);
+            Collection list= object.getSPNIDByDisplay(display_name);
             for(Object service_principal_id:list) {
                 System.out.println("Service Principal ID for the Service Principal " + String.valueOf(service_principal_id));
                 scim.GetServicePrincipalByID(String.valueOf(service_principal_id));
             }
         }
         else {
-            DatabricksSCIM obj =scim.ServicePrincipalBySCIM(display_name,prism_owner_mail);
+            String databricks_group_id=dbx_group.GetDatabricksGroupID();
+            dbx_group.GetGroupDetailByID(databricks_group_id);
+            DatabricksSCIM obj =scim.ServicePrincipalBySCIM(display_name,prism_owner_mail,databricks_group_id);
             System.out.println("Your Databricks Service Principal Username is " + obj.service_principal );
             System.out.println("Your Databricks Service Principal Application ID is " + obj.application_id );
             DatabricksSCIM dbx_token= scim_obj.ServicePrincipalToken(obj.application_id, obj.service_principal);
@@ -76,6 +78,20 @@ public class SpringBootAppApplication implements CommandLineRunner {
             }
             List<SCIMUser> users_list = object.findAll();
             printAllUsers(users_list, "Information of all SCIM Users");
+        }
+
+
+
+
+        /*** Put at the time whether query is running on SQL Endpoint on cluster by service principal user.
+        If it is running then no need to stop or destroy container or
+         if its not running in last 1 hour by particular user then destroy the container on EKS
+         ***/
+        SQLEndpointQueryHistory cluster_obj= new SQLEndpointQueryHistory();
+        Collection list= object.getSPNIDByDisplay(display_name);
+        for(Object service_principal_id:list) {
+            // Input the service_principal name and we find service_principal_id
+            cluster_obj.SPNQueryHistory((String) service_principal_id);
         }
 
 
