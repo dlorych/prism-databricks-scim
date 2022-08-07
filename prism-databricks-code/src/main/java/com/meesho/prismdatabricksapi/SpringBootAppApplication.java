@@ -11,10 +11,7 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import java.io.IOException;
-import java.util.Date;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 
 @SpringBootApplication
@@ -25,14 +22,14 @@ public class SpringBootAppApplication implements CommandLineRunner {
 
     }
 
-    public void printUsers(Iterable<Optional<SCIMUser>> user, String msg) {
+    public void printUsers(Collection<Optional<SCIMUser>> user, String msg) {
         for (Optional<SCIMUser> users: user) {
             System.out.println(msg);
             System.out.println(users);
         }
         System.out.println();
     }
-    public void printAllUsers(Iterable < SCIMUser > spn, String msg) {
+    public void printAllUsers(Collection< SCIMUser > spn, String msg) {
         for (SCIMUser users_list: spn) {
             System.out.print(msg+"\n");
             System.out.println(users_list);
@@ -44,16 +41,18 @@ public class SpringBootAppApplication implements CommandLineRunner {
     public void run(String... args) throws Exception {
 
         //Callback function for getting the user mail id from the prism UI
-        String prism_owner_mail = "dbx_token.api@meesho.com";
+        String prism_owner_mail = "dbx_token1@meesho.com";
         String display_name = prism_owner_mail.replace("@meesho.com", "-serviceprincipal");
         DatabricksServicePrincipalManagement scim = new DatabricksServicePrincipalManagement();
         SCIMTokenCreation scim_obj = new SCIMTokenCreation();
         Boolean b = scim.GetListServicePrincipal(display_name);
         if (b) {
             System.out.println("Databricks Service Principal already exist corresponding to the user " + prism_owner_mail + " on the AWS Databricks");
-            String application_id= String.valueOf(object.getSPNInfo(display_name));
-            System.out.println("Application ID for the Service Principal "+application_id);
-            scim.GetServicePrincipalByID(application_id);
+            Collection list= object.getSPNInfo(display_name);
+            for(Object service_principal_id:list) {
+                System.out.println("Service Principal ID for the Service Principal " + String.valueOf(service_principal_id));
+                scim.GetServicePrincipalByID(String.valueOf(service_principal_id));
+            }
         }
         else {
             DatabricksSCIM obj =scim.ServicePrincipalBySCIM(display_name,prism_owner_mail);

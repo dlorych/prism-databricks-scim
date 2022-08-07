@@ -53,6 +53,7 @@ public class SCIMTokenCreation {
                     ObjectMapper mapper = new ObjectMapper();
                     Object json_obj = mapper.readValue(response_output, Object.class);
                     String response_output_json = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(json_obj);
+                    System.out.println("Sevice Principal Token Details for Application ID "+scim_application_id);
                     System.out.println("\n" + response_output_json);
                     JSONObject json_object = null;
                     JSONObject json_object_ = null;
@@ -89,27 +90,27 @@ public class SCIMTokenCreation {
         }
         else if(code==401 || code==403){
             System.out.println("HTTP Response Status Code " + http.getResponseCode() + " HTTP Response Status Message " + http.getResponseMessage());
-            System.out.println("Request is unauthorised because it lacks valid authentication credentials for the requested resource");
+            System.out.println("Request is unauthorised because it lacks valid authentication credentials for the requested resource. Hence, not able to create spn token for Application ID "+scim_application_id);
             System.exit(1);
         }
         else if (code==404){
             System.out.println("HTTP Response Status Code " + http.getResponseCode() + " HTTP Response Status Message " + http.getResponseMessage());
-            System.out.println("The requested resource does not exist");
+            System.out.println("The requested resource does not exist. Hence, not able to create spn token for Application ID "+scim_application_id);
             System.exit(1);
         }
         else if(code==400){
             System.out.println("HTTP Response Status Code " + http.getResponseCode() + " HTTP Response Status Message " + http.getResponseMessage());
-            System.out.println("The request is malformed requested by the client user");
+            System.out.println("The request is malformed requested by the client user. Hence, not able to create spn token for Application ID "+scim_application_id);
             System.exit(1);
         }
         else if(code==500){
-            System.out.println("The request is not handled correctly due to a server error.");
+            System.out.println("The request is not handled correctly due to a server error. Hence, not able to create spn token for Application ID "+scim_application_id);
             System.out.println("HTTP Response Status Code " + http.getResponseCode() + " HTTP Response Status Message " + http.getResponseMessage());
             System.exit(1);
         }
         else{
             System.out.println("HTTP Response Status Code " + http.getResponseCode() + " HTTP Response Status Message " + http.getResponseMessage());
-            System.out.println("Bad Request, Not able to call Databricks SCIM API ");
+            System.out.println("Bad Request, Not able to call Databricks SCIM API. Hence, not able to create spn token for Application ID "+scim_application_id);
             System.exit(1);
         }
         http.disconnect();

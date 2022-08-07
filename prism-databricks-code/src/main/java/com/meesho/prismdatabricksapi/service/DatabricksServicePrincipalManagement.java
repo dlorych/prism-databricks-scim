@@ -5,12 +5,10 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Map;
 import java.util.Objects;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.meesho.prismdatabricksapi.configs.ApplicationProperties;
@@ -19,11 +17,11 @@ import org.json.*;
 public class DatabricksServicePrincipalManagement {
     private ApplicationProperties properties;
 
-    public void GetServicePrincipalByID(String application_id) throws IOException {
+    public void GetServicePrincipalByID(Object service_principal_id) throws IOException {
         this.properties = new ApplicationProperties();
         String databricks_host = properties.getValue("databricks_host");
         String databricks_master_access_token = String.format("Basic %1$s", properties.getValue("databricks_master_access_token"));
-        String scim_endpoint = String.format("%1$s/api/2.0/preview/scim/v2/ServicePrincipals/%2$s", databricks_host, application_id);
+        String scim_endpoint = String.format("%1$sapi/2.0/preview/scim/v2/ServicePrincipals/%2$s", databricks_host, service_principal_id);
         URL url = new URL(scim_endpoint);
         HttpURLConnection http = (HttpURLConnection) url.openConnection();
         http.setRequestMethod("GET");
@@ -43,7 +41,7 @@ public class DatabricksServicePrincipalManagement {
                     ObjectMapper mapper = new ObjectMapper();
                     Object json_obj = mapper.readValue(response_output, Object.class);
                     String response_output_json = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(json_obj);
-                    System.out.print("Service Principal Details for Application ID "+application_id);
+                    System.out.println("Service Principal Detail for Service Principal ID "+service_principal_id);
                     System.out.println(response_output_json);
                 } else {
                     System.out.print("No output response is generated from calling SCIM GetServicePrincipalByID API 2.0");
@@ -51,23 +49,23 @@ public class DatabricksServicePrincipalManagement {
             }
         } else if (code == 401 || code == 403) {
             System.out.println("HTTP Response Status Code " + http.getResponseCode() + " HTTP Response Status Message " + http.getResponseMessage());
-            System.out.println("Request is unauthorised because it lacks valid authentication credentials for the requested resource. Hence, not able to get SPN detail for Application ID "+application_id);
+            System.out.println("Request is unauthorised because it lacks valid authentication credentials for the requested resource. Hence, not able to get SPN detail for Service Principal ID "+service_principal_id);
             System.exit(1);
         } else if (code == 404) {
             System.out.println("HTTP Response Status Code " + http.getResponseCode() + " HTTP Response Status Message " + http.getResponseMessage());
-            System.out.println("The requested resource does not exist. Hence, not able to get SPN detail for Application ID "+application_id);
+            System.out.println("The requested resource does not exist. Hence, not able to get SPN detail for Service Principal ID "+service_principal_id);
             System.exit(1);
         } else if (code == 400) {
             System.out.println("HTTP Response Status Code " + http.getResponseCode() + " HTTP Response Status Message " + http.getResponseMessage());
-            System.out.println("The request is malformed requested by the client user. Hence, not able to get SPN detail for Application ID "+application_id);
+            System.out.println("The request is malformed requested by the client user. Hence, not able to get SPN detail for Service Principal ID "+service_principal_id);
             System.exit(1);
         } else if (code == 500) {
             System.out.println("HTTP Response Status Code " + http.getResponseCode() + " HTTP Response Status Message " + http.getResponseMessage());
-            System.out.println("The request is not handled correctly due to a server error. Hence, not able to get SPN detail for Application ID "+application_id);
+            System.out.println("The request is not handled correctly due to a server error. Hence, not able to get SPN detail for Service Principal ID "+service_principal_id);
             System.exit(1);
         } else {
             System.out.println("HTTP Response Status Code " + http.getResponseCode() + " HTTP Response Status Message " + http.getResponseMessage());
-            System.out.println("Bad Request, Not able to call Databricks SCIM API. Hence, not able to get SPN detail for Application ID "+application_id);
+            System.out.println("Bad Request, Not able to call Databricks SCIM API. Hence, not able to get SPN detail for Service Principal ID "+service_principal_id);
             System.exit(1);
         }
 
@@ -158,7 +156,7 @@ public class DatabricksServicePrincipalManagement {
                     ObjectMapper mapper = new ObjectMapper();
                     Object json_obj = mapper.readValue(response_output, Object.class);
                     String response_output_json = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(json_obj);
-                    System.out.print("Service Principal Details for display name "+display_name);
+                    System.out.println("Service Principal Details for display name "+display_name);
                     System.out.println(response_output_json);
                     JSONObject json_val = null;
                     JSONObject json_val_ = null;
@@ -229,13 +227,14 @@ public class DatabricksServicePrincipalManagement {
         String display_name = prism_owner_mail.replace("@meesho.com", "-serviceprincipal");
         DatabricksServicePrincipalManagement scim = new DatabricksServicePrincipalManagement();
         Boolean b= scim.GetListServicePrincipal(display_name);
-        if(b){
+        if(!b){
             System.out.println("Databricks Service Principal already exist corresponding to the user "+prism_owner_mail + " on the AWS Databricks");
         }
         else {
             DatabricksSCIM obj =scim.ServicePrincipalBySCIM(display_name,prism_owner_mail);
             System.out.println("Your Databricks Service Principal Username is " + obj.service_principal);
         }
+
 
     }
 }
