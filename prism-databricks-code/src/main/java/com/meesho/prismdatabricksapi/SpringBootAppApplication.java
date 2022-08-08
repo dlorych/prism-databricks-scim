@@ -82,16 +82,19 @@ public class SpringBootAppApplication implements CommandLineRunner {
 
 
 
-
         /*** Put at the time whether query is running on SQL Endpoint on cluster by service principal user.
         If it is running then no need to stop or destroy container or
          if its not running in last 1 hour by particular user then destroy the container on EKS
          ***/
+
+     // 1. API Call for last 1 hour runnable query based on service_principal_id
         SQLEndpointQueryHistory cluster_obj= new SQLEndpointQueryHistory();
         Collection list= object.getSPNIDByDisplay(display_name);
         for(Object service_principal_id:list) {
+
             // Input the service_principal name and we find service_principal_id
-            cluster_obj.SPNQueryHistory((String) service_principal_id);
+            Boolean bool=cluster_obj.FindSPNQueryHistory((String) service_principal_id);
+            System.out.println(bool);
         }
 
 

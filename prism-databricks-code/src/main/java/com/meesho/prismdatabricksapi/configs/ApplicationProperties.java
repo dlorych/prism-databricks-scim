@@ -13,3 +13,4 @@ public class ApplicationProperties {
         return env.get(key);
     }
 }
+
