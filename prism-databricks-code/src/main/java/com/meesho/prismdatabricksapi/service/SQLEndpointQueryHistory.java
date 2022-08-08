@@ -31,7 +31,7 @@ public class SQLEndpointQueryHistory {
                 .toInstant()
                 .toEpochMilli());
         LocalDateTime datetime = LocalDateTime.parse(current_time, formatter);
-        datetime = datetime.minusHours(1);
+        datetime = datetime.minusHours(5);
         String aftersubtraction = datetime.format(formatter);
         String start_time_ms = String.valueOf(LocalDateTime.parse(aftersubtraction, DateTimeFormatter.ofPattern("yyyy-MM-dd HH.mm.ss"))
                 .atZone(ZoneId.systemDefault())
@@ -61,7 +61,7 @@ public class SQLEndpointQueryHistory {
         String[] command = {"curl", "--location", "--request", "GET", dbx_cluster_http_endpoint, "--header", "Content-type", ":", "raw", "/", "json", "--header", token, "--data-raw", data};
         ProcessBuilder process = new ProcessBuilder(command);
         Process p;
-        boolean bool = false;
+        boolean next_page_token = false;
         try {
             p = process.start();
             BufferedReader reader = new BufferedReader(new InputStreamReader(p.getInputStream()));
@@ -81,24 +81,24 @@ public class SQLEndpointQueryHistory {
             JSONObject json_object = new JSONObject(response_output_json);
             if (json_object.has("next_page_token")) {
                 System.out.println("Query are runnable since last 1 hour");
-                bool=true;
+                next_page_token=true;
             } else {
                 System.out.println("Query are not runnable since last 1 hour");
-                bool=false;
+                next_page_token=false;
             }
 
         } catch (IOException e) {
             System.out.print("error");
             e.printStackTrace();
         }
-        return bool;
+        return next_page_token;
     }
 
     public static void main(String[] args) throws ParseException, JSONException {
         // testing the Query History API Call
         SQLEndpointQueryHistory cluster_obj= new SQLEndpointQueryHistory();
-        Boolean bool=cluster_obj.FindSPNQueryHistory("6089093547479495");
-        System.out.println(bool);
+        Boolean next_page_token=cluster_obj.FindSPNQueryHistory("6089093547479495");
+        System.out.println(next_page_token);
 
 
     }
