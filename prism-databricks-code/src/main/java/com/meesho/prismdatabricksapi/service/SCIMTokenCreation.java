@@ -120,12 +120,13 @@ public class SCIMTokenCreation {
     }
     public static void main(String[] args) throws IOException, JSONException, ParseException {
         // Test the API for Service Principal SCIM Token Generation
-        String prism_owner_mail = "test.s@meesho.com";
+        String prism_owner_mail = "spn.token@meesho.com";
         String display_name = prism_owner_mail.replace("@meesho.com", "-serviceprincipal");
         DatabricksServicePrincipalManagement scim = new DatabricksServicePrincipalManagement();
         DatabricksSCIMGroups dbx_group= new DatabricksSCIMGroups();
         SCIMTokenCreation scim_obj = new SCIMTokenCreation();
-        Boolean b= scim.GetListServicePrincipal(display_name);
+        DatabricksSCIM list_obj= scim.GetListServicePrincipal();
+        Boolean b= list_obj.spn_display_list.contains(display_name);
         if(b){
             System.out.println("Databricks Service Principal already exist corresponding to the user "+prism_owner_mail + " on the AWS Databricks");
         }

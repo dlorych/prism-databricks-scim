@@ -22,6 +22,13 @@ public interface SCIMUserRepo extends JpaRepository<SCIMUser,String> {
     @Query(value="select distinct service_principal_id from prod.scim_user where application_id = ?1 ",nativeQuery = true)
     List getSPNIDByAppID(String application_id);
 
+
+    @Transactional
+    @Modifying
+    @Query(value="delete from prod.scim_user where service_principal_id in (?1) ",nativeQuery = true)
+    int deleteSPNByID(List service_principal_id);
+
+
     @Transactional
     @Modifying
     @Query(value="update prod.scim_user set token_id = ?1, spn_token= ?2, token_expiry_time=?3,token_creation_time=?4,token_owner=?5, owner_id=?6 where application_id = ?7",nativeQuery = true)

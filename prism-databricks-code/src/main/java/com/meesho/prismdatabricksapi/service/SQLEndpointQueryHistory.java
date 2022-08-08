@@ -51,13 +51,14 @@ public class SQLEndpointQueryHistory {
                 "\"RUNNING\"\n" +
                 "],\n" +
                 "\"user_ids\": [\n" +
-                "%1$s" +
+                " %1$s  \n" +
                 "],\n" +
                 "\"warehouse_ids\": [\n" + "\"%2$s\" " +
                 "]\n" +
                 "},\n" +
                 "\"include_metrics\": \"false\" \n" +
                 "}", service_principal_id, sql_endpoint_cluster_id, start_time_ms, end_time_ms);
+        System.out.print("Calling Databricks SQLEndpoint Query History API /api/2.0/sql/history/queries ");
         String[] command = {"curl", "--location", "--request", "GET", dbx_cluster_http_endpoint, "--header", "Content-type", ":", "raw", "/", "json", "--header", token, "--data-raw", data};
         ProcessBuilder process = new ProcessBuilder(command);
         Process p;
@@ -80,10 +81,10 @@ public class SQLEndpointQueryHistory {
             System.out.print(response_output_json);
             JSONObject json_object = new JSONObject(response_output_json);
             if (json_object.has("next_page_token")) {
-                System.out.println("Query are runnable since last 1 hour");
+                System.out.println("Queries are runnable on SQLEndpoint Cluster since last 1 hour");
                 next_page_token=true;
             } else {
-                System.out.println("Query are not runnable since last 1 hour");
+                System.out.println("Queries are not runnable on SQLEndpoint Cluster since last 1 hour");
                 next_page_token=false;
             }
 

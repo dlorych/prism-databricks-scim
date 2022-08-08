@@ -7,9 +7,8 @@ import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Objects;
+import java.util.*;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.meesho.prismdatabricksapi.configs.ApplicationProperties;
 import org.json.*;
@@ -73,8 +72,30 @@ public class DatabricksServicePrincipalManagement {
         http.disconnect();
 
     }
+    public void DeleteServicePrincipalByID(Collection list_spn) throws IOException {
+        this.properties = new ApplicationProperties();
+        String databricks_host= properties.getValue("databricks_host");
+        String databricks_master_access_token= String.format("Basic %1$s",properties.getValue("databricks_master_access_token"));
+        for(Object service_principal_id:list_spn) {
+            String scim_endpoint = String.format("%1$sapi/2.0/preview/scim/v2/ServicePrincipals/%2$s", databricks_host, service_principal_id);
+            System.out.println(scim_endpoint);
+            URL url = new URL(scim_endpoint);
+            HttpURLConnection http = (HttpURLConnection) url.openConnection();
+            http.setRequestMethod("DELETE");
+            http.setDoOutput(true);
+            http.setRequestProperty("Content-type", "text/plain");
+            http.setRequestProperty("Authorization", databricks_master_access_token);
+            System.out.println("HTTP Response for Databricks GetServicePrincipals API Endpoint /api/2.0/preview/scim/v2/ServicePrincipals ");
+            int http_code= http.getResponseCode();
+            System.out.println("HTTP Response Status Code "+  http.getResponseCode());
+            System.out.println("HTTP Response Status Message "+ http.getResponseMessage());
+            if(http_code==200 || http_code==204){
+                System.out.print("Service Principal ID "+service_principal_id+ " is deleted from databriciks");
+            }
+        }
 
-    public boolean GetListServicePrincipal(String service_principal_user) throws IOException,JSONException{
+    }
+    public DatabricksSCIM GetListServicePrincipal() throws IOException,JSONException{
         this.properties = new ApplicationProperties();
         String databricks_host= properties.getValue("databricks_host");
         String databricks_master_access_token= String.format("Basic %1$s",properties.getValue("databricks_master_access_token"));
@@ -91,7 +112,8 @@ public class DatabricksServicePrincipalManagement {
         BufferedReader br = new BufferedReader(new InputStreamReader(
                 (http.getInputStream())));
         String response_output;
-        ArrayList<String> al = new ArrayList<String>();
+        ArrayList<String> display_list = new ArrayList<String>();
+        ArrayList<String> spn_id_list = new ArrayList<String>();
         while ((response_output = br.readLine()) != null) {
             if (!Objects.isNull(response_output) ||response_output != null || !response_output.isEmpty() || !response_output.trim().isEmpty()) {
                 JSONObject json_val = null;
@@ -106,8 +128,10 @@ public class DatabricksServicePrincipalManagement {
 
                     JSONObject jsn = jsonArray.getJSONObject(i);
 
-                    String keyVal = jsn.getString("displayName");
-                    al.add(keyVal);
+                    String spn_display = jsn.getString("displayName");
+                    String spn_id = jsn.getString("id");
+                    display_list.add(spn_display);
+                    spn_id_list.add(spn_id);
                 }
 
             }
@@ -115,9 +139,8 @@ public class DatabricksServicePrincipalManagement {
                 System.out.print("No output response is generated from calling SCIM ListServicePrincipal API 2.0");
             }
         }
-        Boolean bool = al.contains(service_principal_user);
 
-        return bool;
+        return new DatabricksSCIM(display_list,spn_id_list);
     }
 
     public DatabricksSCIM ServicePrincipalBySCIM(String display_name,String owner_email,String databricks_group_id) throws IOException, JSONException {
@@ -226,12 +249,13 @@ public class DatabricksServicePrincipalManagement {
 
     public static void main(String[] args) throws IOException, JSONException {
         //Callback function for getting the user mail id from the prism UI
-        String prism_owner_mail = "ankeeta.s@meesho.com";
+        String prism_owner_mail = "spn.token@meesho.com";
         String display_name = prism_owner_mail.replace("@meesho.com", "-serviceprincipal");
         DatabricksServicePrincipalManagement scim = new DatabricksServicePrincipalManagement();
         DatabricksSCIMGroups dbx_group= new DatabricksSCIMGroups();
-        Boolean b= scim.GetListServicePrincipal(display_name);
-        if(!b){
+        DatabricksSCIM list_obj= scim.GetListServicePrincipal();
+        Boolean b= list_obj.spn_display_list.contains(display_name);
+        if(b){
             System.out.println("Databricks Service Principal already exist corresponding to the user "+prism_owner_mail + " on the AWS Databricks");
         }
         else {
@@ -241,6 +265,17 @@ public class DatabricksServicePrincipalManagement {
            System.out.println("Your Databricks Service Principal Username is " + obj.service_principal);
             System.out.println("Your Databricks Service Principal Application ID is " + obj.application_id );
         }
+
+        /* ======== Test ServicePrincipal DeleteServicePrincipalByID ===========
+        If you want to prevent certain SPN ID to delete from workspace, pass the spn_id list
+
+        boolean bool_test= list_obj.spn_id_list.removeIf(value -> value.contains("6457562551823152"));
+        if(bool_test) {
+            System.out.println("List of Service Principal ID to be deleted from workspace");
+            System.out.println(list_obj.spn_id_list);
+            scim.DeleteServicePrincipalByID(list_obj.spn_id_list);
+        }
+        */
 
 
     }

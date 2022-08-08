@@ -17,7 +17,6 @@ public class SpringBootAppApplication implements CommandLineRunner {
     @Autowired SCIMUserRepo object;
     public static void main(String[] args) throws JSONException, IOException {
         SpringApplication.run(SpringBootAppApplication.class, args);
-
     }
 
     public void printUsers(Collection<Optional<SCIMUser>> user, String msg) {
@@ -39,14 +38,15 @@ public class SpringBootAppApplication implements CommandLineRunner {
     public void run(String... args) throws Exception {
 
         //Callback function for getting the user mail id from the prism UI
-        String prism_owner_mail = "dbx_token@meesho.com";
+        String prism_owner_mail = "spn_token@meesho.com";
 
         String display_name = prism_owner_mail.replace("@meesho.com", "-serviceprincipal");
         DatabricksSCIMGroups dbx_group= new DatabricksSCIMGroups();
         DatabricksServicePrincipalManagement scim = new DatabricksServicePrincipalManagement();
         SCIMTokenCreation scim_obj = new SCIMTokenCreation();
-        Boolean b = scim.GetListServicePrincipal(display_name);
-        if (!b) {
+        DatabricksSCIM list_obj= scim.GetListServicePrincipal();
+        Boolean b= list_obj.spn_display_list.contains(display_name);
+        if (b) {
             System.out.println("Databricks Service Principal already exist corresponding to the user " + prism_owner_mail + " on the AWS Databricks");
             Collection list= object.getSPNIDByDisplay(display_name);
             for(Object service_principal_id:list) {
@@ -82,21 +82,39 @@ public class SpringBootAppApplication implements CommandLineRunner {
 
 
 
-        /*** Put at the time whether query is running on SQL Endpoint on cluster by service principal user.
-        If it is running then no need to stop or destroy container or
-         if its not running in last 1 hour by particular user then destroy the container on EKS
+        /*** ========== Databricks SQL Endpoint Cluster Query History API Call ==============
+         Put at the time whether query is running on SQL Endpoint on cluster by service principal user.
+        If it is running then no need to stop or zeppelin destroy container or
+         if its not running in last 1 hour by particular user then destroy the zepplein container on EKS
          ***/
 
-     // 1. API Call for last 1 hour runnable query based on service_principal_id
         SQLEndpointQueryHistory cluster_obj= new SQLEndpointQueryHistory();
-        Collection list= object.getSPNIDByDisplay(display_name);
-        for(Object service_principal_id:list) {
-
-            // Input the service_principal name and we find service_principal_id
+        Collection spn_id_list= object.getSPNIDByDisplay(display_name);
+        for(Object service_principal_id:spn_id_list) {
+            // Input the service_principal name & we find service_principal_id corresponding to the spn name
             Boolean bool=cluster_obj.FindSPNQueryHistory((String) service_principal_id);
             System.out.println(bool);
         }
 
+
+            /* ======== Test ServicePrincipal DeleteServicePrincipalByID ===========
+        If you want to prevent certain SPN ID to delete from workspace, pass the spn_id list
+
+        boolean bool_test= list_obj.spn_id_list.removeIf(value -> value.contains("6457562551823152"));
+        if(bool_test) {
+            System.out.println("List of Service Principal ID to be deleted from workspace");
+            System.out.println(list_obj.spn_id_list);
+            scim.DeleteServicePrincipalByID(list_obj.spn_id_list);
+            int delete_records=object.deleteSPNByID(list_obj.spn_id_list);
+            if(delete_records>=1){
+                System.out.println("Records are deleted successfully from scim_user table for Service Principal ID's "+ list_obj.spn_id_list);
+            }
+            else{
+                System.out.println("Not able to delete the records from scim_user table");
+            }
+
+        }
+        */
 
     }
 }
