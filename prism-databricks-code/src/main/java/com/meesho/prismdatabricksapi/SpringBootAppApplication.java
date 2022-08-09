@@ -38,7 +38,7 @@ public class SpringBootAppApplication implements CommandLineRunner {
     public void run(String... args) throws Exception {
 
         //Callback function for getting the user mail id from the prism UI
-        String prism_owner_mail = "spn_token@meesho.com";
+        String prism_owner_mail = "raghwendra.singh@meesho.com";
 
         String display_name = prism_owner_mail.replace("@meesho.com", "-serviceprincipal");
         DatabricksSCIMGroups dbx_group= new DatabricksSCIMGroups();
@@ -64,7 +64,7 @@ public class SpringBootAppApplication implements CommandLineRunner {
             System.out.print("Your token corresponding to your service principal "+ obj.service_principal+" is"+ dbx_token.token_map.get("token_value"));
             SCIMUser scimUser = new SCIMUser();
             scimUser.setApplication_id(obj.application_id);
-            System.out.println("Storing the primary key application_id");
+            System.out.println("Storing the primary key application_id into scim_user table");
             object.save(scimUser);
             int update_records_scim = object.updateSPN((String) obj.scim_map.get("service_principal"), (String) obj.scim_map.get("owner_email"),(String) obj.scim_map.get("service_principal_id"), Boolean.parseBoolean((String) obj.scim_map.get("active")), (String) obj.scim_map.get("group_name"), (String) obj.scim_map.get("group_id"), obj.application_id);
             int update_records_token= object.updateServicePrincipalToken((String) dbx_token.token_map.get("token_id"), (String) dbx_token.token_map.get("spn_token"), (Date) dbx_token.token_map.get("token_expiry_time"), (Date) dbx_token.token_map.get("token_creation_time"), (String) dbx_token.token_map.get("token_owner"), (String) dbx_token.token_map.get("owner_id"),dbx_token.application_id);
