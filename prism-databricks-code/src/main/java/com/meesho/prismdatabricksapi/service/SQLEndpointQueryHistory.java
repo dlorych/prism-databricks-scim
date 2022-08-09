@@ -81,10 +81,10 @@ public class SQLEndpointQueryHistory {
             System.out.print(response_output_json);
             JSONObject json_object = new JSONObject(response_output_json);
             if (json_object.has("next_page_token")) {
-                System.out.println("Queries are runnable on SQLEndpoint Cluster since last 1 hour");
+                System.out.println("Queries are runnable on SQLEndpoint Cluster since last 1 hour for user "+service_principal_id);
                 next_page_token=true;
             } else {
-                System.out.println("Queries are not runnable on SQLEndpoint Cluster since last 1 hour");
+                System.out.println("Queries are not runnable on SQLEndpoint Cluster since last 1 hour for user "+service_principal_id );
                 next_page_token=false;
             }
 

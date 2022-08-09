@@ -5,14 +5,12 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
-
 import javax.transaction.Transactional;
 import java.util.*;
 
 @Repository
 public interface SCIMUserRepo extends JpaRepository<SCIMUser,String> {
     Optional<SCIMUser> findById(String application_id);
-
 
     @Transactional
     @Query(value="select distinct service_principal_id from prod.scim_user where display_name = ?1 ",nativeQuery = true)

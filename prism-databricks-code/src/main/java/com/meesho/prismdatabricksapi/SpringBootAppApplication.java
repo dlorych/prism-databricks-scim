@@ -96,8 +96,7 @@ public class SpringBootAppApplication implements CommandLineRunner {
             System.out.println(bool);
         }
 
-
-            /* ======== Test ServicePrincipal DeleteServicePrincipalByID ===========
+        /* ======== Test ServicePrincipal DeleteServicePrincipalByID ===========
         If you want to prevent certain SPN ID to delete from workspace, pass the spn_id list
 
         boolean bool_test= list_obj.spn_id_list.removeIf(value -> value.contains("6457562551823152"));
