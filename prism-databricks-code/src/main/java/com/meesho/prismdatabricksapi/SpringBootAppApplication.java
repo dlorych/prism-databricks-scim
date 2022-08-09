@@ -45,7 +45,7 @@ public class SpringBootAppApplication implements CommandLineRunner {
         DatabricksServicePrincipalManagement scim = new DatabricksServicePrincipalManagement();
         SCIMTokenCreation scim_obj = new SCIMTokenCreation();
         DatabricksSCIM list_obj= scim.GetListServicePrincipal();
-        Boolean b= list_obj.spn_display_list.contains(display_name);
+        Boolean b= object.checkUserExists(display_name,prism_owner_mail);
         if (b) {
             System.out.println("Databricks Service Principal already exist corresponding to the user " + prism_owner_mail + " on the AWS Databricks");
             Collection list= object.getSPNIDByDisplay(display_name);
