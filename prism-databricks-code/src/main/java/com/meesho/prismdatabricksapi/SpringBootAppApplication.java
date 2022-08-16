@@ -101,7 +101,7 @@ public class SpringBootAppApplication implements CommandLineRunner {
          ***/
             Boolean all_spn_query_history=cluster_obj.FindAllSPNQueryHistory();
             System.out.println(all_spn_query_history);
-        }
+
 
         /* ======== Test ServicePrincipal DeleteServicePrincipalByID ===========
         If you want to prevent certain SPN ID to delete from workspace, pass the spn_id list
