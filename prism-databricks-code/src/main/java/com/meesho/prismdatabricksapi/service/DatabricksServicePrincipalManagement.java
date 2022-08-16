@@ -10,10 +10,15 @@ import java.nio.charset.StandardCharsets;
 import java.util.*;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.meesho.prismdatabricksapi.configs.ApplicationProperties;
+import com.meesho.prismdatabricksapi.repositories.SCIMUserRepo;
 import org.json.*;
+import org.springframework.beans.factory.annotation.Autowired;
 
 public class DatabricksServicePrincipalManagement {
     private ApplicationProperties properties;
+    @Autowired
+    SCIMUserRepo object;
+
 
     public void GetServicePrincipalByID(Object service_principal_id) throws IOException {
         this.properties = new ApplicationProperties();
@@ -246,7 +251,7 @@ public class DatabricksServicePrincipalManagement {
 
     }
 
-    public static void main(String[] args) throws IOException, JSONException {
+    public void main(String[] args) throws IOException, JSONException {
         //Callback function for getting the user mail id from the prism UI
         String prism_owner_mail = "spn.token@meesho.com";
         String display_name = prism_owner_mail.replace("@meesho.com", "-serviceprincipal");

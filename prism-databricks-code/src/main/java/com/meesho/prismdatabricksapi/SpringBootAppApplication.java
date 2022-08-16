@@ -31,6 +31,7 @@ public class SpringBootAppApplication implements CommandLineRunner {
             System.out.print(msg+"\n");
             System.out.println(users_list);
         }
+
         System.out.println();
     }
 
@@ -39,12 +40,10 @@ public class SpringBootAppApplication implements CommandLineRunner {
 
         //Callback function for getting the user mail id from the prism UI
         String prism_owner_mail = "raghwendra.singh@meesho.com";
-
         String display_name = prism_owner_mail.replace("@meesho.com", "-serviceprincipal");
         DatabricksSCIMGroups dbx_group= new DatabricksSCIMGroups();
         DatabricksServicePrincipalManagement scim = new DatabricksServicePrincipalManagement();
         SCIMTokenCreation scim_obj = new SCIMTokenCreation();
-        DatabricksSCIM list_obj= scim.GetListServicePrincipal();
         Boolean b= object.checkUserExists(display_name,prism_owner_mail);
         if (b) {
             System.out.println("Databricks Service Principal already exist corresponding to the user " + prism_owner_mail + " on the AWS Databricks");
@@ -82,18 +81,26 @@ public class SpringBootAppApplication implements CommandLineRunner {
 
 
 
-        /*** ========== Databricks SQL Endpoint Cluster Query History API Call ==============
-         Put at the time whether query is running on SQL Endpoint on cluster by service principal user.
+        /*** ========== Databricks SQL Endpoint Cluster Query History API Call for Particular User ==============
+         Put at the time whether query is running on SQL Endpoint on cluster by particular service principal user.
         If it is running then no need to stop or zeppelin destroy container or
-         if its not running in last 1 hour by particular user then destroy the zepplein container on EKS
+         if its not running in last 1 hour by particular user then destroy the zeppelin container on EKS
          ***/
-
         SQLEndpointQueryHistory cluster_obj= new SQLEndpointQueryHistory();
         Collection spn_id_list= object.getSPNIDByDisplay(display_name);
         for(Object service_principal_id:spn_id_list) {
             // Input the service_principal name & we find service_principal_id corresponding to the spn name
-            Boolean bool=cluster_obj.FindSPNQueryHistory((String) service_principal_id);
-            System.out.println(bool);
+            Boolean spn_query_hostory=cluster_obj.FindSPNQueryHistoryByID((String) service_principal_id);
+            System.out.println(spn_query_hostory);
+        }
+
+        /*** ========== Databricks SQL Endpoint Cluster Query History API Call for All Users ==============
+         Put at the time whether query is running on SQL Endpoint on cluster by particular service principal user.
+         If it is running then no need to stop or zeppelin destroy container or
+         if its not running in last 1 hour by all user then destroy the zeppelin container on EKS
+         ***/
+            Boolean all_spn_query_history=cluster_obj.FindAllSPNQueryHistory();
+            System.out.println(all_spn_query_history);
         }
 
         /* ======== Test ServicePrincipal DeleteServicePrincipalByID ===========

@@ -6,6 +6,7 @@ import com.meesho.prismdatabricksapi.configs.ApplicationProperties;
 import org.json.JSONException;
 import org.json.JSONObject;
 import java.io.*;
+import java.text.MessageFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
@@ -17,13 +18,65 @@ import java.util.Date;
 public class SQLEndpointQueryHistory {
     private ApplicationProperties properties;
 
-    public boolean FindSPNQueryHistory(String service_principal_id) throws ParseException, JSONException {
+    public Boolean FindAllSPNQueryHistory() throws ParseException, JSONException {
+        String json_payload = "{" +
+                "\"filter_by\": {\n" +
+                "\"query_start_time_range\": {\n" +
+                "\"end_time_ms\": %3$s , \n" +
+                "\"start_time_ms\": %2$s \n" +
+                "},\n" +
+                "\"statuses\": [\n" +
+                "\"FINISHED\",\n" +
+                "\"FAILED\", \n" +
+                "\"QUEUED\",\n" +
+                "\"CANCELED\",\n" +
+                "\"RUNNING\"\n" +
+                "],\n" +
+                "\"warehouse_ids\": [\n" + "\"%1$s\" " +
+                "]\n" +
+                "},\n" +
+                "\"include_metrics\": \"false\" \n" +
+                "}";
+        Boolean next_page_token = SPNQueryHistory(json_payload);
+
+        return next_page_token;
+    }
+
+    public Boolean FindSPNQueryHistoryByID(String service_principal_id) throws ParseException, JSONException {
+
+        String json_payload = "{" +
+                "\"filter_by\": {\n" +
+                "\"query_start_time_range\": {\n" +
+                "\"end_time_ms\": %3$s , \n" +
+                "\"start_time_ms\": %2$s \n" +
+                "},\n" +
+                "\"statuses\": [\n" +
+                "\"FINISHED\",\n" +
+                "\"FAILED\", \n" +
+                "\"QUEUED\",\n" +
+                "\"CANCELED\",\n" +
+                "\"RUNNING\"\n" +
+                "],\n" +
+                "\"user_ids\": [\n" +
+                " \n" + service_principal_id + " \n" +
+                "],\n" +
+                "\"warehouse_ids\": [\n" + "\"%1$s\" " +
+                "]\n" +
+                "},\n" +
+                "\"include_metrics\": \"false\" \n" +
+                "}";
+             Boolean next_page_token = SPNQueryHistory(json_payload);
+
+          return next_page_token;
+}
+
+    public boolean SPNQueryHistory(String json_payload) throws ParseException, JSONException {
         this.properties = new ApplicationProperties();
         String databricks_host = properties.getValue("databricks_host");
         String databricks_master_access_token = String.format("%1$s", properties.getValue("databricks_master_access_token"));
         String dbx_cluster_http_endpoint = String.format("%1$sapi/2.0/sql/history/queries", databricks_host);
-        String sql_endpoint_cluster_id = properties.getValue("sql_endpoint_cluster_id");
         String token = String.format("Authorization: Basic %1$s ", databricks_master_access_token);
+        String sql_endpoint_cluster_id = properties.getValue("sql_endpoint_cluster_id");
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH.mm.ss");
         String current_time = new SimpleDateFormat("yyyy-MM-dd HH.mm.ss").format(new Date());
         String end_time_ms = String.valueOf(LocalDateTime.parse(current_time, DateTimeFormatter.ofPattern("yyyy-MM-dd HH.mm.ss"))
@@ -37,27 +90,7 @@ public class SQLEndpointQueryHistory {
                 .atZone(ZoneId.systemDefault())
                 .toInstant()
                 .toEpochMilli());
-        String data = String.format("{" +
-                "\"filter_by\": {\n" +
-                "\"query_start_time_range\": {\n" +
-                "\"end_time_ms\": %4$s , \n" +
-                "\"start_time_ms\": %3$s \n" +
-                "},\n" +
-                "\"statuses\": [\n" +
-                "\"FINISHED\",\n" +
-                "\"FAILED\", \n" +
-                "\"QUEUED\",\n" +
-                "\"CANCELED\",\n" +
-                "\"RUNNING\"\n" +
-                "],\n" +
-                "\"user_ids\": [\n" +
-                " %1$s  \n" +
-                "],\n" +
-                "\"warehouse_ids\": [\n" + "\"%2$s\" " +
-                "]\n" +
-                "},\n" +
-                "\"include_metrics\": \"false\" \n" +
-                "}", service_principal_id, sql_endpoint_cluster_id, start_time_ms, end_time_ms);
+        String data= String.format(json_payload,sql_endpoint_cluster_id, start_time_ms, end_time_ms);
         System.out.print("Calling Databricks SQLEndpoint Query History API /api/2.0/sql/history/queries ");
         String[] command = {"curl", "--location", "--request", "GET", dbx_cluster_http_endpoint, "--header", "Content-type", ":", "raw", "/", "json", "--header", token, "--data-raw", data};
         ProcessBuilder process = new ProcessBuilder(command);
@@ -81,10 +114,10 @@ public class SQLEndpointQueryHistory {
             System.out.print(response_output_json);
             JSONObject json_object = new JSONObject(response_output_json);
             if (json_object.has("next_page_token")) {
-                System.out.println("Queries are runnable on SQLEndpoint Cluster since last 1 hour for user "+service_principal_id);
+                System.out.println("Queries are runnable on SQLEndpoint Cluster since last 1 hour for user");
                 next_page_token=true;
             } else {
-                System.out.println("Queries are not runnable on SQLEndpoint Cluster since last 1 hour for user "+service_principal_id );
+                System.out.println("Queries are not runnable on SQLEndpoint Cluster since last 1 hour for user");
                 next_page_token=false;
             }
 
@@ -98,8 +131,10 @@ public class SQLEndpointQueryHistory {
     public static void main(String[] args) throws ParseException, JSONException {
         // testing the Query History API Call
         SQLEndpointQueryHistory cluster_obj= new SQLEndpointQueryHistory();
-        Boolean next_page_token=cluster_obj.FindSPNQueryHistory("6089093547479495");
+        Boolean next_page_token=cluster_obj.FindSPNQueryHistoryByID("6089093547479495");
         System.out.println(next_page_token);
+        Boolean next_page_tokens = cluster_obj.FindAllSPNQueryHistory();
+        System.out.println(next_page_tokens);
 
 
     }
