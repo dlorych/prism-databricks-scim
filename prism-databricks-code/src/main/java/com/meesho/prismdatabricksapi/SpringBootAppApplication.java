@@ -38,7 +38,7 @@ public class SpringBootAppApplication implements CommandLineRunner {
     @Override
     public void run(String... args) throws Exception {
 
-        //Callback function for getting the user mail id from the prism UI
+//        //Callback function for getting the user mail id from the prism UI
         String prism_owner_mail = "raghwendra.singh@meesho.com";
         String display_name = prism_owner_mail.replace("@meesho.com", "-serviceprincipal");
         DatabricksSCIMGroups dbx_group= new DatabricksSCIMGroups();
@@ -93,7 +93,6 @@ public class SpringBootAppApplication implements CommandLineRunner {
             Boolean spn_query_hostory=cluster_obj.FindSPNQueryHistoryByID((String) service_principal_id);
             System.out.println(spn_query_hostory);
         }
-
         /*** ========== Databricks SQL Endpoint Cluster Query History API Call for All Users ==============
          Put at the time whether query is running on SQL Endpoint on cluster by particular service principal user.
          If it is running then no need to stop or zeppelin destroy container or
@@ -101,6 +100,7 @@ public class SpringBootAppApplication implements CommandLineRunner {
          ***/
             Boolean all_spn_query_history=cluster_obj.FindAllSPNQueryHistory();
             System.out.println(all_spn_query_history);
+
 
 
         /* ======== Test ServicePrincipal DeleteServicePrincipalByID ===========
