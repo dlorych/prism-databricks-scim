@@ -10,11 +10,14 @@ import java.nio.charset.StandardCharsets;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.logging.Logger;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.meesho.prismdatabricksapi.configs.ApplicationProperties;
 import org.json.*;
 
 public class SCIMTokenCreation {
+    static Logger log = Logger.getLogger(SCIMTokenCreation.class.getName());
     private ApplicationProperties properties;
     public DatabricksSCIM ServicePrincipalToken(String scim_application_id, String service_principal_display_name) throws IOException, JSONException, ParseException {
         this.properties = new ApplicationProperties();
@@ -42,9 +45,9 @@ public class SCIMTokenCreation {
         stream.write(out);
         int code = http.getResponseCode();
         if(code==200 || code==201){
-            System.out.println("HTTP Response for Databricks SCIM Token API Endpoint /api/2.0/token-management/on-behalf-of/token");
-            System.out.println("HTTP Response Status Code " + http.getResponseCode());
-            System.out.println("HTTP Response Status Message " + http.getResponseMessage());
+            log.info("HTTP Response for Databricks SCIM Token API Endpoint /api/2.0/token-management/on-behalf-of/token");
+            log.info("HTTP Response Status Code " + http.getResponseCode());
+            log.info("HTTP Response Status Message " + http.getResponseMessage());
             BufferedReader br = new BufferedReader(new InputStreamReader(
                     (http.getInputStream())));
             String response_output;
@@ -53,8 +56,8 @@ public class SCIMTokenCreation {
                     ObjectMapper mapper = new ObjectMapper();
                     Object json_obj = mapper.readValue(response_output, Object.class);
                     String response_output_json = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(json_obj);
-                    System.out.println("Sevice Principal Token Details for Application ID "+scim_application_id);
-                    System.out.println("\n" + response_output_json);
+                    log.info("Sevice Principal Token Details for Application ID "+scim_application_id);
+                    log.info("\n" + response_output_json);
                     JSONObject json_object = null;
                     JSONObject json_object_ = null;
                     try {
@@ -84,34 +87,34 @@ public class SCIMTokenCreation {
                     token_map.put("token_expiry_time",token_expiry_time);
                 }
                 else{
-                    System.out.print("No output response is generated from calling SCIM Token API 2.0");
+                    log.info("No output response is generated from calling SCIM Token API 2.0");
                 }
             }
         }
         else if(code==401 || code==403){
-            System.out.println("HTTP Response Status Code " + http.getResponseCode() + " HTTP Response Status Message " + http.getResponseMessage());
-            System.out.println("Request is unauthorised because it lacks valid authentication credentials for the requested resource. Hence, not able to create spn token for Application ID "+scim_application_id);
-            System.exit(1);
+            log.info("HTTP Response Status Code " + http.getResponseCode() + " HTTP Response Status Message " + http.getResponseMessage());
+            log.info("Request is unauthorised because it lacks valid authentication credentials for the requested resource. Hence, not able to create spn token for Application ID "+scim_application_id);
+          
         }
         else if (code==404){
-            System.out.println("HTTP Response Status Code " + http.getResponseCode() + " HTTP Response Status Message " + http.getResponseMessage());
-            System.out.println("The requested resource does not exist. Hence, not able to create spn token for Application ID "+scim_application_id);
-            System.exit(1);
+            log.info("HTTP Response Status Code " + http.getResponseCode() + " HTTP Response Status Message " + http.getResponseMessage());
+            log.info("The requested resource does not exist. Hence, not able to create spn token for Application ID "+scim_application_id);
+          
         }
         else if(code==400){
-            System.out.println("HTTP Response Status Code " + http.getResponseCode() + " HTTP Response Status Message " + http.getResponseMessage());
-            System.out.println("The request is malformed requested by the client user. Hence, not able to create spn token for Application ID "+scim_application_id);
-            System.exit(1);
+            log.info("HTTP Response Status Code " + http.getResponseCode() + " HTTP Response Status Message " + http.getResponseMessage());
+            log.info("The request is malformed requested by the client user. Hence, not able to create spn token for Application ID "+scim_application_id);
+          
         }
         else if(code==500){
-            System.out.println("The request is not handled correctly due to a server error. Hence, not able to create spn token for Application ID "+scim_application_id);
-            System.out.println("HTTP Response Status Code " + http.getResponseCode() + " HTTP Response Status Message " + http.getResponseMessage());
-            System.exit(1);
+            log.info("The request is not handled correctly due to a server error. Hence, not able to create spn token for Application ID "+scim_application_id);
+            log.info("HTTP Response Status Code " + http.getResponseCode() + " HTTP Response Status Message " + http.getResponseMessage());
+          
         }
         else{
-            System.out.println("HTTP Response Status Code " + http.getResponseCode() + " HTTP Response Status Message " + http.getResponseMessage());
-            System.out.println("Bad Request, Not able to call Databricks SCIM API. Hence, not able to create spn token for Application ID "+scim_application_id);
-            System.exit(1);
+            log.info("HTTP Response Status Code " + http.getResponseCode() + " HTTP Response Status Message " + http.getResponseMessage());
+            log.info("Bad Request, Not able to call Databricks SCIM API. Hence, not able to create spn token for Application ID "+scim_application_id);
+          
         }
         http.disconnect();
         return new DatabricksSCIM(scim_application_id,token_map);
@@ -127,16 +130,16 @@ public class SCIMTokenCreation {
         DatabricksSCIM list_obj= scim.GetListServicePrincipal();
         Boolean b= list_obj.spn_display_list.contains(display_name);
         if(b){
-            System.out.println("Databricks Service Principal already exist corresponding to the user "+prism_owner_mail + " on the AWS Databricks");
+            log.info("Databricks Service Principal already exist corresponding to the user "+prism_owner_mail + " on the AWS Databricks");
         }
         else {
             String databricks_group_id=dbx_group.GetDatabricksGroupID();
             dbx_group.GetGroupDetailByID(databricks_group_id);
             DatabricksSCIM obj =scim.ServicePrincipalBySCIM(display_name,prism_owner_mail,databricks_group_id);
-            System.out.println("Your Databricks Service Principal Username is " + obj.service_principal );
-            System.out.println("Your Databricks Service Principal Application ID is " + obj.application_id );
+            log.info("Your Databricks Service Principal Username is " + obj.service_principal );
+            log.info("Your Databricks Service Principal Application ID is " + obj.application_id );
             DatabricksSCIM dbx_token= scim_obj.ServicePrincipalToken(obj.application_id, obj.service_principal);
-            System.out.print("Your token corresponding to your service principal "+ obj.service_principal+" is"+ dbx_token.token_map.get("token_value"));
+            log.info("Your token corresponding to your service principal "+ obj.service_principal+" is"+ dbx_token.token_map.get("token_value"));
 
         }
 

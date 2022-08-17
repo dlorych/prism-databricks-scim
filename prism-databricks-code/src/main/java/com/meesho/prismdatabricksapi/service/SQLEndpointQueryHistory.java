@@ -13,9 +13,11 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.Date;
+import java.util.logging.Logger;
 
 
 public class SQLEndpointQueryHistory {
+    static Logger log = Logger.getLogger(SQLEndpointQueryHistory.class.getName());
     private ApplicationProperties properties;
 
     public Boolean FindAllSPNQueryHistory() throws ParseException, JSONException {
@@ -91,7 +93,7 @@ public class SQLEndpointQueryHistory {
                 .toInstant()
                 .toEpochMilli());
         String data= String.format(json_payload,sql_endpoint_cluster_id, start_time_ms, end_time_ms);
-        System.out.print("Calling Databricks SQLEndpoint Query History API /api/2.0/sql/history/queries ");
+        log.info("Calling Databricks SQLEndpoint Query History API /api/2.0/sql/history/queries ");
         String[] command = {"curl", "--location", "--request", "GET", dbx_cluster_http_endpoint, "--header", "Content-type", ":", "raw", "/", "json", "--header", token, "--data-raw", data};
         ProcessBuilder process = new ProcessBuilder(command);
         Process p;
@@ -110,19 +112,19 @@ public class SQLEndpointQueryHistory {
             ObjectMapper mapper = new ObjectMapper();
             Object json_obj = mapper.readValue(result, Object.class);
             String response_output_json = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(json_obj);
-            System.out.println("Query History for the Service Principal SPN ");
-            System.out.print(response_output_json);
+            log.info("Query History for the Service Principal SPN ");
+            log.info(response_output_json);
             JSONObject json_object = new JSONObject(response_output_json);
             if (json_object.has("next_page_token")) {
-                System.out.println("Queries are runnable on SQLEndpoint Cluster since last 1 hour for user");
+                log.info("Queries are runnable on SQLEndpoint Cluster since last 1 hour for user");
                 next_page_token=true;
             } else {
-                System.out.println("Queries are not runnable on SQLEndpoint Cluster since last 1 hour for user");
+                log.info("Queries are not runnable on SQLEndpoint Cluster since last 1 hour for user");
                 next_page_token=false;
             }
 
         } catch (IOException e) {
-            System.out.print("error");
+            log.info("error");
             e.printStackTrace();
         }
         return next_page_token;
@@ -132,9 +134,9 @@ public class SQLEndpointQueryHistory {
         // testing the Query History API Call
         SQLEndpointQueryHistory cluster_obj= new SQLEndpointQueryHistory();
         Boolean next_page_token=cluster_obj.FindSPNQueryHistoryByID("6089093547479495");
-        System.out.println(next_page_token);
+        log.info(String.valueOf(next_page_token));
         Boolean next_page_tokens = cluster_obj.FindAllSPNQueryHistory();
-        System.out.println(next_page_tokens);
+        log.info(String.valueOf(next_page_tokens));
 
 
     }

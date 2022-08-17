@@ -8,6 +8,8 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
+import java.util.logging.Logger;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.meesho.prismdatabricksapi.configs.ApplicationProperties;
 import com.meesho.prismdatabricksapi.repositories.SCIMUserRepo;
@@ -15,6 +17,7 @@ import org.json.*;
 import org.springframework.beans.factory.annotation.Autowired;
 
 public class DatabricksServicePrincipalManagement {
+    static Logger log = Logger.getLogger(DatabricksServicePrincipalManagement.class.getName());
     private ApplicationProperties properties;
     @Autowired
     SCIMUserRepo object;
@@ -33,10 +36,10 @@ public class DatabricksServicePrincipalManagement {
         http.setRequestProperty("Authorization", databricks_master_access_token);
         int code = http.getResponseCode();
         if (code == 200) {
-            System.out.println("HTTP Response for Databricks GetServicePrincipalByID API Endpoint /api/2.0/preview/scim/v2/ServicePrincipals/{id}");
-            System.out.println("HTTP Response Status Code " + http.getResponseCode());
-            System.out.println("HTTP Response Status Message " + http.getResponseMessage());
-            System.out.println("Service Principal detail fetched successfully");
+            log.info("HTTP Response for Databricks GetServicePrincipalByID API Endpoint /api/2.0/preview/scim/v2/ServicePrincipals/{id}");
+            log.info("HTTP Response Status Code " + http.getResponseCode());
+            log.info("HTTP Response Status Message " + http.getResponseMessage());
+            log.info("Service Principal detail fetched successfully");
             BufferedReader br = new BufferedReader(new InputStreamReader(
                     (http.getInputStream())));
             String response_output;
@@ -45,32 +48,32 @@ public class DatabricksServicePrincipalManagement {
                     ObjectMapper mapper = new ObjectMapper();
                     Object json_obj = mapper.readValue(response_output, Object.class);
                     String response_output_json = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(json_obj);
-                    System.out.println("Service Principal Detail for Service Principal ID "+service_principal_id);
-                    System.out.println(response_output_json);
+                    log.info("Service Principal Detail for Service Principal ID "+service_principal_id);
+                    log.info(response_output_json);
                 } else {
-                    System.out.print("No output response is generated from calling SCIM GetServicePrincipalByID API 2.0");
+                    log.info("No output response is generated from calling SCIM GetServicePrincipalByID API 2.0");
                 }
             }
         } else if (code == 401 || code == 403) {
-            System.out.println("HTTP Response Status Code " + http.getResponseCode() + " HTTP Response Status Message " + http.getResponseMessage());
-            System.out.println("Request is unauthorised because it lacks valid authentication credentials for the requested resource. Hence, not able to get SPN detail for Service Principal ID "+service_principal_id);
-            System.exit(1);
+            log.info("HTTP Response Status Code " + http.getResponseCode() + " HTTP Response Status Message " + http.getResponseMessage());
+            log.info("Request is unauthorised because it lacks valid authentication credentials for the requested resource. Hence, not able to get SPN detail for Service Principal ID "+service_principal_id);
+          
         } else if (code == 404) {
-            System.out.println("HTTP Response Status Code " + http.getResponseCode() + " HTTP Response Status Message " + http.getResponseMessage());
-            System.out.println("The requested resource does not exist. Hence, not able to get SPN detail for Service Principal ID "+service_principal_id);
-            System.exit(1);
+            log.info("HTTP Response Status Code " + http.getResponseCode() + " HTTP Response Status Message " + http.getResponseMessage());
+            log.info("The requested resource does not exist. Hence, not able to get SPN detail for Service Principal ID "+service_principal_id);
+          
         } else if (code == 400) {
-            System.out.println("HTTP Response Status Code " + http.getResponseCode() + " HTTP Response Status Message " + http.getResponseMessage());
-            System.out.println("The request is malformed requested by the client user. Hence, not able to get SPN detail for Service Principal ID "+service_principal_id);
-            System.exit(1);
+            log.info("HTTP Response Status Code " + http.getResponseCode() + " HTTP Response Status Message " + http.getResponseMessage());
+            log.info("The request is malformed requested by the client user. Hence, not able to get SPN detail for Service Principal ID "+service_principal_id);
+          
         } else if (code == 500) {
-            System.out.println("HTTP Response Status Code " + http.getResponseCode() + " HTTP Response Status Message " + http.getResponseMessage());
-            System.out.println("The request is not handled correctly due to a server error. Hence, not able to get SPN detail for Service Principal ID "+service_principal_id);
-            System.exit(1);
+            log.info("HTTP Response Status Code " + http.getResponseCode() + " HTTP Response Status Message " + http.getResponseMessage());
+            log.info("The request is not handled correctly due to a server error. Hence, not able to get SPN detail for Service Principal ID "+service_principal_id);
+          
         } else {
-            System.out.println("HTTP Response Status Code " + http.getResponseCode() + " HTTP Response Status Message " + http.getResponseMessage());
-            System.out.println("Bad Request, Not able to call Databricks SCIM API. Hence, not able to get SPN detail for Service Principal ID "+service_principal_id);
-            System.exit(1);
+            log.info("HTTP Response Status Code " + http.getResponseCode() + " HTTP Response Status Message " + http.getResponseMessage());
+            log.info("Bad Request, Not able to call Databricks SCIM API. Hence, not able to get SPN detail for Service Principal ID "+service_principal_id);
+          
         }
 
         http.disconnect();
@@ -82,19 +85,19 @@ public class DatabricksServicePrincipalManagement {
         String databricks_master_access_token= String.format("Basic %1$s",properties.getValue("databricks_master_access_token"));
         for(Object service_principal_id:list_spn) {
             String scim_endpoint = String.format("%1$sapi/2.0/preview/scim/v2/ServicePrincipals/%2$s", databricks_host, service_principal_id);
-            System.out.println(scim_endpoint);
+            log.info(scim_endpoint);
             URL url = new URL(scim_endpoint);
             HttpURLConnection http = (HttpURLConnection) url.openConnection();
             http.setRequestMethod("DELETE");
             http.setDoOutput(true);
             http.setRequestProperty("Content-type", "text/plain");
             http.setRequestProperty("Authorization", databricks_master_access_token);
-            System.out.println("HTTP Response for Databricks GetServicePrincipals API Endpoint /api/2.0/preview/scim/v2/ServicePrincipals ");
+            log.info("HTTP Response for Databricks GetServicePrincipals API Endpoint /api/2.0/preview/scim/v2/ServicePrincipals ");
             int http_code= http.getResponseCode();
-            System.out.println("HTTP Response Status Code "+  http.getResponseCode());
-            System.out.println("HTTP Response Status Message "+ http.getResponseMessage());
+            log.info("HTTP Response Status Code "+  http.getResponseCode());
+            log.info("HTTP Response Status Message "+ http.getResponseMessage());
             if(http_code==200 || http_code==204){
-                System.out.print("Service Principal ID "+service_principal_id+ " is deleted from databriciks");
+                log.info("Service Principal ID "+service_principal_id+ " is deleted from databriciks");
             }
         }
 
@@ -110,9 +113,9 @@ public class DatabricksServicePrincipalManagement {
         http.setDoOutput(true);
         http.setRequestProperty("Content-type", "application/scim+json");
         http.setRequestProperty("Authorization", databricks_master_access_token);
-        System.out.println("HTTP Response for Databricks GetServicePrincipals API Endpoint /api/2.0/preview/scim/v2/ServicePrincipals ");
-        System.out.println("HTTP Response Status Code "+  http.getResponseCode());
-        System.out.println("HTTP Response Status Message "+ http.getResponseMessage());
+        log.info("HTTP Response for Databricks GetServicePrincipals API Endpoint /api/2.0/preview/scim/v2/ServicePrincipals ");
+        log.info("HTTP Response Status Code "+  http.getResponseCode());
+        log.info("HTTP Response Status Message "+ http.getResponseMessage());
         BufferedReader br = new BufferedReader(new InputStreamReader(
                 (http.getInputStream())));
         String response_output;
@@ -140,7 +143,7 @@ public class DatabricksServicePrincipalManagement {
 
             }
             else{
-                System.out.print("No output response is generated from calling SCIM ListServicePrincipal API 2.0");
+                log.info("No output response is generated from calling SCIM ListServicePrincipal API 2.0");
             }
         }
 
@@ -174,10 +177,10 @@ public class DatabricksServicePrincipalManagement {
         stream.write(out);
         int code = http.getResponseCode();
         if (code == 200 || code == 201) {
-            System.out.println("HTTP Response for Databricks SCIM API Endpoint /api/2.0/preview/scim/v2/ServicePrincipals");
-            System.out.println("HTTP Response Status Code " + http.getResponseCode());
-            System.out.println("HTTP Response Status Message " + http.getResponseMessage());
-            System.out.println("Service Principal is created successfully");
+            log.info("HTTP Response for Databricks SCIM API Endpoint /api/2.0/preview/scim/v2/ServicePrincipals");
+            log.info("HTTP Response Status Code " + http.getResponseCode());
+            log.info("HTTP Response Status Message " + http.getResponseMessage());
+            log.info("Service Principal is created successfully");
             BufferedReader br = new BufferedReader(new InputStreamReader(
                     (http.getInputStream())));
             String response_output;
@@ -186,8 +189,8 @@ public class DatabricksServicePrincipalManagement {
                     ObjectMapper mapper = new ObjectMapper();
                     Object json_obj = mapper.readValue(response_output, Object.class);
                     String response_output_json = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(json_obj);
-                    System.out.println("Service Principal Details for display name "+display_name);
-                    System.out.println(response_output_json);
+                    log.info("Service Principal Details for display name "+display_name);
+                    log.info(response_output_json);
                     JSONObject json_val = null;
                     JSONObject json_val_ = null;
                     JSONArray json_array_ = null;
@@ -222,29 +225,29 @@ public class DatabricksServicePrincipalManagement {
                     map.put("owner_email",owner_email);
 
                 } else {
-                    System.out.print("No output response is generated from calling SCIM CreateServicePrincipal API 2.0");
+                    log.info("No output response is generated from calling SCIM CreateServicePrincipal API 2.0");
                 }
             }
         } else if (code == 401 || code == 403) {
-            System.out.println("HTTP Response Status Code " + http.getResponseCode() + " HTTP Response Status Message " + http.getResponseMessage());
-            System.out.println("Request is unauthorised because it lacks valid authentication credentials for the requested resource. Hence, not able to create SPN for display_name "+display_name);
-            System.exit(1);
+            log.info("HTTP Response Status Code " + http.getResponseCode() + " HTTP Response Status Message " + http.getResponseMessage());
+            log.info("Request is unauthorised because it lacks valid authentication credentials for the requested resource. Hence, not able to create SPN for display_name "+display_name);
+          
         } else if (code == 404) {
-            System.out.println("HTTP Response Status Code " + http.getResponseCode() + " HTTP Response Status Message " + http.getResponseMessage());
-            System.out.println("The requested resource does not exist. Hence, not able to create SPN for display_name "+display_name);
-            System.exit(1);
+            log.info("HTTP Response Status Code " + http.getResponseCode() + " HTTP Response Status Message " + http.getResponseMessage());
+            log.info("The requested resource does not exist. Hence, not able to create SPN for display_name "+display_name);
+          
         } else if (code == 400) {
-            System.out.println("HTTP Response Status Code " + http.getResponseCode() + " HTTP Response Status Message " + http.getResponseMessage());
-            System.out.println("The request is malformed requested by the client user. Hence, not able to create SPN for display_name "+display_name);
-            System.exit(1);
+            log.info("HTTP Response Status Code " + http.getResponseCode() + " HTTP Response Status Message " + http.getResponseMessage());
+            log.info("The request is malformed requested by the client user. Hence, not able to create SPN for display_name "+display_name);
+          
         } else if (code == 500) {
-            System.out.println("HTTP Response Status Code " + http.getResponseCode() + " HTTP Response Status Message " + http.getResponseMessage());
-            System.out.println("The request is not handled correctly due to a server error. Hence, not able to create SPN for display_name "+display_name);
-            System.exit(1);
+            log.info("HTTP Response Status Code " + http.getResponseCode() + " HTTP Response Status Message " + http.getResponseMessage());
+            log.info("The request is not handled correctly due to a server error. Hence, not able to create SPN for display_name "+display_name);
+          
         } else {
-            System.out.println("HTTP Response Status Code " + http.getResponseCode() + " HTTP Response Status Message " + http.getResponseMessage());
-            System.out.println("Bad Request, Not able to call Databricks SCIM API. Hence, not able to create SPN for display_name "+display_name);
-            System.exit(1);
+            log.info("HTTP Response Status Code " + http.getResponseCode() + " HTTP Response Status Message " + http.getResponseMessage());
+            log.info("Bad Request, Not able to call Databricks SCIM API. Hence, not able to create SPN for display_name "+display_name);
+          
         }
         http.disconnect();
        return new DatabricksSCIM(service_principal, application_id, map);
@@ -260,14 +263,14 @@ public class DatabricksServicePrincipalManagement {
         DatabricksSCIM list_obj= scim.GetListServicePrincipal();
         Boolean b= list_obj.spn_display_list.contains(display_name);
         if(b){
-            System.out.println("Databricks Service Principal already exist corresponding to the user "+prism_owner_mail + " on the AWS Databricks");
+            log.info("Databricks Service Principal already exist corresponding to the user "+prism_owner_mail + " on the AWS Databricks");
         }
         else {
             String databricks_group_id=dbx_group.GetDatabricksGroupID();
             dbx_group.GetGroupDetailByID(databricks_group_id);
            DatabricksSCIM obj =scim.ServicePrincipalBySCIM(display_name,prism_owner_mail,databricks_group_id);
-           System.out.println("Your Databricks Service Principal Username is " + obj.service_principal);
-            System.out.println("Your Databricks Service Principal Application ID is " + obj.application_id );
+           log.info("Your Databricks Service Principal Username is " + obj.service_principal);
+            log.info("Your Databricks Service Principal Application ID is " + obj.application_id );
         }
 
         /* ======== Test ServicePrincipal DeleteServicePrincipalByID ===========
@@ -275,11 +278,13 @@ public class DatabricksServicePrincipalManagement {
 
         boolean bool_test= list_obj.spn_id_list.removeIf(value -> value.contains("6457562551823152"));
         if(bool_test) {
-            System.out.println("List of Service Principal ID to be deleted from workspace");
-            System.out.println(list_obj.spn_id_list);
+            log.info("List of Service Principal ID to be deleted from workspace");
+            log.info(String.valueOf(list_obj.spn_id_list));
             scim.DeleteServicePrincipalByID(list_obj.spn_id_list);
         }
-        */
+
+         */
+
 
 
     }

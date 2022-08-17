@@ -13,8 +13,10 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Objects;
+import java.util.logging.Logger;
 
 public class DatabricksSCIMGroups {
+    static Logger log = Logger.getLogger(DatabricksSCIMGroups.class.getName());
     private ApplicationProperties properties;
 
     public String GetDatabricksGroupID() throws IOException, JSONException {
@@ -34,10 +36,10 @@ public class DatabricksSCIMGroups {
         http.setRequestProperty("Authorization", databricks_master_access_token);
         int http_code = http.getResponseCode();
         if (http_code == 200) {
-            System.out.println("HTTP Response for Databricks Group API Endpoint /api/2.0/preview/scim/v2/Groups");
-            System.out.println("HTTP Response Status Code " + http.getResponseCode());
-            System.out.println("HTTP Response Status Message " + http.getResponseMessage());
-            System.out.println("Databricks Group detail fetched successfully");
+            log.info("HTTP Response for Databricks Group API Endpoint /api/2.0/preview/scim/v2/Groups");
+            log.info("HTTP Response Status Code " + http.getResponseCode());
+            log.info("HTTP Response Status Message " + http.getResponseMessage());
+            log.info("Databricks Group detail fetched successfully");
             BufferedReader br = new BufferedReader(new InputStreamReader(
                     (http.getInputStream())));
             String response_output;
@@ -63,33 +65,33 @@ public class DatabricksSCIMGroups {
                         if (isKeyPresent) {
                             databricks_group_id = key_value.get(databricks_group_name);
                         } else {
-                            System.out.println("Databricks Group " + databricks_group_name + " does not exist");
+                            log.info("Databricks Group " + databricks_group_name + " does not exist");
                         }
                     }
 
                 } else {
-                    System.out.print("No output response is generated from calling SCIM GetDatabricksGroups API 2.0");
+                    log.info("No output response is generated from calling SCIM GetDatabricksGroups API 2.0");
                 }
             }
         } else if (http_code == 401 || http_code == 403) {
-            System.out.println("HTTP Response Status Code " + http.getResponseCode() + " HTTP Response Status Message " + http.getResponseMessage());
-            System.out.println("Request is unauthorised because it lacks valid authentication credentials for the requested resource Hence, not able to get group_id of databricks group " + databricks_group_name);
+            log.info("HTTP Response Status Code " + http.getResponseCode() + " HTTP Response Status Message " + http.getResponseMessage());
+            log.info("Request is unauthorised because it lacks valid authentication credentials for the requested resource Hence, not able to get group_id of databricks group " + databricks_group_name);
             System.exit(1);
         } else if (http_code == 404) {
-            System.out.println("HTTP Response Status Code " + http.getResponseCode() + " HTTP Response Status Message " + http.getResponseMessage());
-            System.out.println("The requested resource does not exist. Hence, not able to get group_id of databricks group " + databricks_group_name);
+            log.info("HTTP Response Status Code " + http.getResponseCode() + " HTTP Response Status Message " + http.getResponseMessage());
+            log.info("The requested resource does not exist. Hence, not able to get group_id of databricks group " + databricks_group_name);
             System.exit(1);
         } else if (http_code == 400) {
-            System.out.println("HTTP Response Status Code " + http.getResponseCode() + " HTTP Response Status Message " + http.getResponseMessage());
-            System.out.println("The request is malformed requested by the client user. Hence, not able to get group_id of databricks group " + databricks_group_name);
+            log.info("HTTP Response Status Code " + http.getResponseCode() + " HTTP Response Status Message " + http.getResponseMessage());
+            log.info("The request is malformed requested by the client user. Hence, not able to get group_id of databricks group " + databricks_group_name);
             System.exit(1);
         } else if (http_code == 500) {
-            System.out.println("HTTP Response Status Code " + http.getResponseCode() + " HTTP Response Status Message " + http.getResponseMessage());
-            System.out.println("The request is not handled correctly due to a server error. Hence, not able to get group_id of databricks group " + databricks_group_name);
+            log.info("HTTP Response Status Code " + http.getResponseCode() + " HTTP Response Status Message " + http.getResponseMessage());
+            log.info("The request is not handled correctly due to a server error. Hence, not able to get group_id of databricks group " + databricks_group_name);
             System.exit(1);
         } else {
-            System.out.println("HTTP Response Status Code " + http.getResponseCode() + " HTTP Response Status Message " + http.getResponseMessage());
-            System.out.println("Bad Request, Not able to call Databricks SCIM API. Hence, not able to get group_id of databricks group " + databricks_group_name);
+            log.info("HTTP Response Status Code " + http.getResponseCode() + " HTTP Response Status Message " + http.getResponseMessage());
+            log.info("Bad Request, Not able to call Databricks SCIM API. Hence, not able to get group_id of databricks group " + databricks_group_name);
             System.exit(1);
         }
         http.disconnect();
@@ -109,10 +111,10 @@ public class DatabricksSCIMGroups {
         http.setRequestProperty("Authorization", databricks_master_access_token);
         int http_code = http.getResponseCode();
         if (http_code == 200) {
-            System.out.println("HTTP Response for Databricks Group API Endpoint /api/2.0/preview/scim/v2/Groups/{id}");
-            System.out.println("HTTP Response Status Code " + http.getResponseCode());
-            System.out.println("HTTP Response Status Message " + http.getResponseMessage());
-            System.out.println("Databricks Group detail fetched successfully for group id " + group_id);
+            log.info("HTTP Response for Databricks Group API Endpoint /api/2.0/preview/scim/v2/Groups/{id}");
+            log.info("HTTP Response Status Code " + http.getResponseCode());
+            log.info("HTTP Response Status Message " + http.getResponseMessage());
+            log.info("Databricks Group detail fetched successfully for group id " + group_id);
             BufferedReader br = new BufferedReader(new InputStreamReader(
                     (http.getInputStream())));
             String response_output;
@@ -121,31 +123,31 @@ public class DatabricksSCIMGroups {
                     ObjectMapper mapper = new ObjectMapper();
                     Object json_obj = mapper.readValue(response_output, Object.class);
                     String response_output_json = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(json_obj);
-                    System.out.println("Databricks Group Details for group id " + group_id);
-                    System.out.println(response_output_json);
+                    log.info("Databricks Group Details for group id " + group_id);
+                    log.info(response_output_json);
                 } else {
-                    System.out.print("No output response is generated from calling SCIM GetDatabricksGroupDetailByID API 2.0");
+                    log.info("No output response is generated from calling SCIM GetDatabricksGroupDetailByID API 2.0");
                 }
             }
         } else if (http_code == 401 || http_code == 403) {
-            System.out.println("HTTP Response Status Code " + http.getResponseCode() + " HTTP Response Status Message " + http.getResponseMessage());
-            System.out.println("Request is unauthorised because it lacks valid authentication credentials for the requested resource. Hence, not able to get details of databricks group for group id " + group_id);
+            log.info("HTTP Response Status Code " + http.getResponseCode() + " HTTP Response Status Message " + http.getResponseMessage());
+            log.info("Request is unauthorised because it lacks valid authentication credentials for the requested resource. Hence, not able to get details of databricks group for group id " + group_id);
             System.exit(1);
         } else if (http_code == 404) {
-            System.out.println("HTTP Response Status Code " + http.getResponseCode() + " HTTP Response Status Message " + http.getResponseMessage());
-            System.out.println("The requested resource does not exist. Hence, not able to get details of databricks group for group id " + group_id);
+            log.info("HTTP Response Status Code " + http.getResponseCode() + " HTTP Response Status Message " + http.getResponseMessage());
+            log.info("The requested resource does not exist. Hence, not able to get details of databricks group for group id " + group_id);
             System.exit(1);
         } else if (http_code == 400) {
-            System.out.println("HTTP Response Status Code " + http.getResponseCode() + " HTTP Response Status Message " + http.getResponseMessage());
-            System.out.println("The request is malformed requested by the client user. Hence, not able to get details of databricks group for group id " + group_id);
+            log.info("HTTP Response Status Code " + http.getResponseCode() + " HTTP Response Status Message " + http.getResponseMessage());
+            log.info("The request is malformed requested by the client user. Hence, not able to get details of databricks group for group id " + group_id);
             System.exit(1);
         } else if (http_code == 500) {
-            System.out.println("HTTP Response Status Code " + http.getResponseCode() + " HTTP Response Status Message " + http.getResponseMessage());
-            System.out.println("The request is not handled correctly due to a server error. Hence, not able to get details of databricks group for group id " + group_id);
+            log.info("HTTP Response Status Code " + http.getResponseCode() + " HTTP Response Status Message " + http.getResponseMessage());
+            log.info("The request is not handled correctly due to a server error. Hence, not able to get details of databricks group for group id " + group_id);
             System.exit(1);
         } else {
-            System.out.println("HTTP Response Status Code " + http.getResponseCode() + " HTTP Response Status Message " + http.getResponseMessage());
-            System.out.println("Bad Request, Not able to call Databricks SCIM API. Hence, not able to get details of databricks group for group id " + group_id);
+            log.info("HTTP Response Status Code " + http.getResponseCode() + " HTTP Response Status Message " + http.getResponseMessage());
+            log.info("Bad Request, Not able to call Databricks SCIM API. Hence, not able to get details of databricks group for group id " + group_id);
             System.exit(1);
         }
         http.disconnect();
