@@ -45,7 +45,7 @@ public class SpringBootAppApplication implements CommandLineRunner {
     public void run(String... args) throws Exception {
 
 //        //Callback function for getting the user mail id from the prism UI
-        String prism_owner_mail = "nishchay.agarwal@meesho.com";
+        String prism_owner_mail = "spn.test@meesho.com";
         String display_name = prism_owner_mail.replace("@meesho.com", "-serviceprincipal");
         DatabricksSCIMGroups dbx_group = new DatabricksSCIMGroups();
         DatabricksServicePrincipalManagement scim = new DatabricksServicePrincipalManagement();
