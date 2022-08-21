@@ -17,6 +17,10 @@ public interface SCIMUserRepo extends JpaRepository<SCIMUser,String> {
     List getSPNIDByDisplay(String display_name);
 
     @Transactional
+    @Query(value="select distinct spn_token from prod.scim_user where display_name = ?1 ",nativeQuery = true)
+    String getSPNTokenByDisplay(String display_name);
+
+    @Transactional
     @Query(value="SELECT count(*) from prod.scim_user where  display_name=?1 and owner_email=?2 ",nativeQuery = true)
     Integer checkUserExists(String display_name,String owner_email);
 
