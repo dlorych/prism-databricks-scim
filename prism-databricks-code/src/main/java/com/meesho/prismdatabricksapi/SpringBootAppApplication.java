@@ -98,6 +98,7 @@ public class SpringBootAppApplication implements CommandLineRunner {
             Boolean spn_query_history = cluster_obj.FindSPNQueryHistoryByID((String) service_principal_id);
             log.info(String.valueOf(spn_query_history));
 
+
             /*** ========== Databricks SQL Endpoint Cluster Query History API Call for All Users ==============
              Put at the time whether query is running on SQL Endpoint on cluster by particular service principal user.
              If it is running then no need to stop or zeppelin destroy container or
@@ -110,7 +111,6 @@ public class SpringBootAppApplication implements CommandLineRunner {
             /*** ========== Databricks SQL Endpoint Cluster Query History API Call for All Users who are non-active users since last 1 hour
              *       find the users are not running query on SQL Endpoint Query History since last 1 hour
               */
-
             Collection spnid = object.getListSPNID();
             ArrayList<String>non_active_users_lst= new ArrayList<>();
             ArrayList<String>active_users_list= new ArrayList<>();
@@ -124,7 +124,7 @@ public class SpringBootAppApplication implements CommandLineRunner {
                     non_active_users_lst.add(non_active_users);
                 }
                 log.info("List of non-active_users on SQL Endpoint Cluster");
-                log.info(String.valueOf(non_active_users_lst));
+                log.info(String.valueOf(active_users_list));
             }
 
         /* ======== Test ServicePrincipal DeleteServicePrincipalByID ===========
