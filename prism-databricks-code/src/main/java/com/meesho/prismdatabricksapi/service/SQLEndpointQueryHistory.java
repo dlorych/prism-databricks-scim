@@ -3,6 +3,7 @@ package com.meesho.prismdatabricksapi.service;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.meesho.prismdatabricksapi.configs.ApplicationProperties;
 
+import com.meesho.prismdatabricksapi.constants.Databricks;
 import org.json.JSONException;
 import org.json.JSONObject;
 import java.io.*;
@@ -14,6 +15,8 @@ import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.logging.Logger;
+
+import static com.meesho.prismdatabricksapi.constants.Databricks.num_hours;
 
 
 public class SQLEndpointQueryHistory {
@@ -86,7 +89,7 @@ public class SQLEndpointQueryHistory {
                 .toInstant()
                 .toEpochMilli());
         LocalDateTime datetime = LocalDateTime.parse(current_time, formatter);
-        datetime = datetime.minusHours(5);
+        datetime = datetime.minusHours(num_hours);
         String aftersubtraction = datetime.format(formatter);
         String start_time_ms = String.valueOf(LocalDateTime.parse(aftersubtraction, DateTimeFormatter.ofPattern("yyyy-MM-dd HH.mm.ss"))
                 .atZone(ZoneId.systemDefault())

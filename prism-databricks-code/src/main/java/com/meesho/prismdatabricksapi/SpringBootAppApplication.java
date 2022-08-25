@@ -45,7 +45,7 @@ public class SpringBootAppApplication implements CommandLineRunner {
     public void run(String... args) throws Exception {
 
 //        //Callback function for getting the user mail id from the prism UI
-        String prism_owner_mail = "spn.test@meesho.com";
+        String prism_owner_mail = "spn.test_dbc@meesho.com";
         String display_name = prism_owner_mail.replace("@meesho.com", "-serviceprincipal");
         DatabricksSCIMGroups dbx_group = new DatabricksSCIMGroups();
         DatabricksServicePrincipalManagement scim = new DatabricksServicePrincipalManagement();
@@ -107,6 +107,25 @@ public class SpringBootAppApplication implements CommandLineRunner {
             log.info(String.valueOf(all_spn_query_history));
 
 
+            /*** ========== Databricks SQL Endpoint Cluster Query History API Call for All Users who are non-active users since last 1 hour
+             *       find the users are not running query on SQL Endpoint Query History since last 1 hour
+              */
+
+            Collection spnid = object.getListSPNID();
+            ArrayList<String>non_active_users_lst= new ArrayList<>();
+            ArrayList<String>active_users_list= new ArrayList<>();
+            for (Object spn_users : spnid) {
+                Boolean sql_endpoint_users = cluster_obj.FindSPNQueryHistoryByID((String) spn_users);
+                if (sql_endpoint_users) {
+                    String active_users = object.getListUsers((String)spn_users);
+                    active_users_list.add(active_users);
+                } else {
+                    String non_active_users = object.getListUsers((String) spn_users);
+                    non_active_users_lst.add(non_active_users);
+                }
+                log.info("List of non-active_users on SQL Endpoint Cluster");
+                log.info(String.valueOf(non_active_users_lst));
+            }
 
         /* ======== Test ServicePrincipal DeleteServicePrincipalByID ===========
         If you want to prevent certain SPN ID to delete from workspace, pass the spn_id list

@@ -19,8 +19,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 public class DatabricksServicePrincipalManagement {
     static Logger log = Logger.getLogger(DatabricksServicePrincipalManagement.class.getName());
     private ApplicationProperties properties;
-    @Autowired
-    SCIMUserRepo object;
 
 
     public void GetServicePrincipalByID(Object service_principal_id) throws IOException {
