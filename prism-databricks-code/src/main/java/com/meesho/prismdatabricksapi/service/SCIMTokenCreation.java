@@ -82,7 +82,7 @@ public class SCIMTokenCreation {
                     admin_id = json_object_.getString("created_by_id");
                     token_expiry_time = dateFormat.parse(dateFormat.format(json_object_.getDouble("expiry_time")));
                     token_map = new HashMap<Object, Object>();
-                    token_map.put("spn_token",token_value);
+                    token_map.put("token_value",token_value);
                     token_map.put("token_creation_time",token_creation_time);
                     token_map.put("token_id",token_id);
                     token_map.put("owner_id",owner_id);
@@ -126,7 +126,7 @@ public class SCIMTokenCreation {
     }
     public static void main(String[] args) throws IOException, JSONException, ParseException {
         // Test the API for Service Principal SCIM Token Generation
-        String prism_owner_mail = "spn.token@meesho.com";
+        String prism_owner_mail = "raghwendra.singh@meesho.com";
         String display_name = prism_owner_mail.replace("@meesho.com", "-serviceprincipal");
         DatabricksServicePrincipalManagement scim = new DatabricksServicePrincipalManagement();
         DatabricksSCIMGroups dbx_group= new DatabricksSCIMGroups();
@@ -142,8 +142,8 @@ public class SCIMTokenCreation {
             DatabricksSCIM obj =scim.ServicePrincipalBySCIM(display_name,prism_owner_mail,databricks_group_id);
             log.info("Your Databricks Service Principal Username is " + obj.service_principal );
             log.info("Your Databricks Service Principal Application ID is " + obj.application_id );
-            DatabricksSCIM dbx_token= scim_obj.ServicePrincipalToken(obj.application_id, obj.service_principal);
-            log.info("Your token corresponding to your service principal "+ obj.service_principal+" is"+ dbx_token.token_map.get("token_value"));
+            DatabricksSCIM dbx_token = scim_obj.ServicePrincipalToken(obj.application_id, obj.service_principal);
+            log.info("Your token corresponding to your service principal " + obj.service_principal + " is" + dbx_token.token_map.get("token_value"));
 
         }
 
