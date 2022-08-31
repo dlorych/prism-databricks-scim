@@ -45,7 +45,7 @@ public class SpringBootAppApplication implements CommandLineRunner {
     public void run(String... args) throws Exception {
 
        //Callback function for getting the user mail id from the prism UI
-        String prism_owner_mail = "spn.test@meesho.com";
+        String prism_owner_mail = "bala.ganpathy@meesho.com";
         String display_name = prism_owner_mail.replace("@meesho.com", "-serviceprincipal");
         DatabricksSCIMGroups dbx_group = new DatabricksSCIMGroups();
         DatabricksServicePrincipalManagement scim = new DatabricksServicePrincipalManagement();
@@ -71,7 +71,7 @@ public class SpringBootAppApplication implements CommandLineRunner {
             log.info("Storing the primary key application_id into scim_user table");
             object.save(scimUser);
             int update_records_scim = object.updateSPN((String) obj.scim_map.get("service_principal"), (String) obj.scim_map.get("owner_email"), (String) obj.scim_map.get("service_principal_id"), Boolean.parseBoolean((String) obj.scim_map.get("active")), (String) obj.scim_map.get("group_name"), (String) obj.scim_map.get("group_id"), obj.application_id);
-            int update_records_token = object.updateServicePrincipalToken((String) dbx_token.token_map.get("token_id"), (String) dbx_token.token_map.get("spn_token"), (Date) dbx_token.token_map.get("token_expiry_time"), (Date) dbx_token.token_map.get("token_creation_time"), (String) dbx_token.token_map.get("token_owner"), (String) dbx_token.token_map.get("owner_id"), dbx_token.application_id);
+            int update_records_token = object.updateServicePrincipalToken((String) dbx_token.token_map.get("token_id"), (String) dbx_token.token_map.get("spn_token"), (Date) dbx_token.token_map.get("token_expiry_time"), (Date) dbx_token.token_map.get("token_creation_time"), (String) dbx_token.token_map.get("token_owner"), (String) dbx_token.token_map.get("owner_id"),(String)dbx_token.token_map.get("admin_id"), dbx_token.application_id);
             if (update_records_scim == 1 && update_records_token == 1) {
                 log.info("Storing the records into scim_user table for application_id " + obj.application_id);
                 Optional<SCIMUser> user = object.findById(obj.application_id);
@@ -124,7 +124,7 @@ public class SpringBootAppApplication implements CommandLineRunner {
                     non_active_users_lst.add(non_active_users);
                 }
                 log.info("List of non-active_users on SQL Endpoint Cluster");
-                log.info(String.valueOf(active_users_list));
+                log.info(String.valueOf(non_active_users_lst));
             }
 
         /* ======== Test ServicePrincipal DeleteServicePrincipalByID ===========

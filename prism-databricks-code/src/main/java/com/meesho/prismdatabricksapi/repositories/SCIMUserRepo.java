@@ -38,9 +38,8 @@ public interface SCIMUserRepo extends JpaRepository<SCIMUser,String> {
 
     @Transactional
     @Modifying
-    @Query(value="update prod.scim_user set token_id = ?1, spn_token= ?2, token_expiry_time=?3,token_creation_time=?4,token_owner=?5, owner_id=?6 where application_id = ?7",nativeQuery = true)
-    int updateServicePrincipalToken(String token_id, String spn_token, Date token_expiry_time, Date token_creation_time, String token_owner,String owner_id, String application_id);
-
+    @Query(value="update prod.scim_user set token_id = ?1, spn_token= ?2, token_expiry_time=?3,token_creation_time=?4,token_owner=?5, owner_id=?6,admin_id=?7 where owner_email = ?8",nativeQuery = true)
+    int updateServicePrincipalToken(String token_id, String spn_token, Date token_expiry_time, Date token_creation_time, String token_owner,String owner_id,String created_by_id, String owner_email);
 
     @Transactional
     @Modifying()

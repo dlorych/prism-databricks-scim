@@ -31,6 +31,7 @@ public class SCIMTokenCreation {
         String token_id=null;
         String owner_id=null;
         String token_owner=null;
+        String admin_id=null;
         HashMap<Object, Object> token_map = null;
         URL url = new URL(spn_token_endpoint);
         HttpURLConnection http = (HttpURLConnection)url.openConnection();
@@ -78,6 +79,7 @@ public class SCIMTokenCreation {
                     token_id = json_object_.getString("token_id");
                     owner_id = json_object_.getString("owner_id");
                     token_owner = json_object_.getString("created_by_username");
+                    admin_id = json_object_.getString("created_by_id");
                     token_expiry_time = dateFormat.parse(dateFormat.format(json_object_.getDouble("expiry_time")));
                     token_map = new HashMap<Object, Object>();
                     token_map.put("spn_token",token_value);
@@ -86,6 +88,7 @@ public class SCIMTokenCreation {
                     token_map.put("owner_id",owner_id);
                     token_map.put("token_owner",token_owner);
                     token_map.put("token_expiry_time",token_expiry_time);
+                    token_map.put("admin_id",admin_id);
                 }
                 else{
                     log.info("No output response is generated from calling SCIM Token API 2.0");
