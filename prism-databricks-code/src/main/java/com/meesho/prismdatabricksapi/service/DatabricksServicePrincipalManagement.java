@@ -9,15 +9,15 @@ import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.logging.Logger;
-
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.meesho.prismdatabricksapi.configs.ApplicationProperties;
 import com.meesho.prismdatabricksapi.repositories.SCIMUserRepo;
 import org.json.*;
 import org.springframework.beans.factory.annotation.Autowired;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 public class DatabricksServicePrincipalManagement {
-    static Logger log = Logger.getLogger(DatabricksServicePrincipalManagement.class.getName());
     private ApplicationProperties properties;
 
 

@@ -14,9 +14,9 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Objects;
 import java.util.logging.Logger;
-
+import lombok.extern.slf4j.Slf4j;
+@Slf4j
 public class DatabricksSCIMGroups {
-    static Logger log = Logger.getLogger(DatabricksSCIMGroups.class.getName());
     private ApplicationProperties properties;
 
     public String GetDatabricksGroupID() throws IOException, JSONException {

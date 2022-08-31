@@ -11,12 +11,12 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import java.io.IOException;
 import java.util.*;
 import java.util.logging.Logger;
+import lombok.extern.slf4j.Slf4j;
 
-
+@Slf4j
 @SpringBootApplication
 public class SpringBootAppApplication implements CommandLineRunner {
 
-    static Logger log = Logger.getLogger(SpringBootAppApplication.class.getName());
     @Autowired
     SCIMUserRepo object;
 
@@ -44,8 +44,8 @@ public class SpringBootAppApplication implements CommandLineRunner {
     @Override
     public void run(String... args) throws Exception {
 
-//        //Callback function for getting the user mail id from the prism UI
-        String prism_owner_mail = "spn.test_dbc@meesho.com";
+       //Callback function for getting the user mail id from the prism UI
+        String prism_owner_mail = "spn.test@meesho.com";
         String display_name = prism_owner_mail.replace("@meesho.com", "-serviceprincipal");
         DatabricksSCIMGroups dbx_group = new DatabricksSCIMGroups();
         DatabricksServicePrincipalManagement scim = new DatabricksServicePrincipalManagement();

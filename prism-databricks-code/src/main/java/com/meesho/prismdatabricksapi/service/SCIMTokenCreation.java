@@ -11,13 +11,14 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.logging.Logger;
-
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.meesho.prismdatabricksapi.configs.ApplicationProperties;
 import org.json.*;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 public class SCIMTokenCreation {
-    static Logger log = Logger.getLogger(SCIMTokenCreation.class.getName());
+
     private ApplicationProperties properties;
     public DatabricksSCIM ServicePrincipalToken(String scim_application_id, String service_principal_display_name) throws IOException, JSONException, ParseException {
         this.properties = new ApplicationProperties();

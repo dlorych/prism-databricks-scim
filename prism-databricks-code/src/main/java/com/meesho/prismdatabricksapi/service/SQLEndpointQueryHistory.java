@@ -4,9 +4,19 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.meesho.prismdatabricksapi.configs.ApplicationProperties;
 
 import com.meesho.prismdatabricksapi.constants.Databricks;
+import org.apache.http.HttpHeaders;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpEntityEnclosingRequestBase;
+import org.apache.http.client.methods.HttpUriRequest;
+import org.apache.http.client.methods.RequestBuilder;
+import org.apache.http.entity.StringEntity;
+import org.apache.http.impl.client.HttpClientBuilder;
 import org.json.JSONException;
 import org.json.JSONObject;
 import java.io.*;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.text.MessageFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -14,13 +24,14 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.Date;
+import java.util.Objects;
 import java.util.logging.Logger;
+import lombok.extern.slf4j.Slf4j;
 
 import static com.meesho.prismdatabricksapi.constants.Databricks.num_hours;
 
-
+@Slf4j
 public class SQLEndpointQueryHistory {
-    static Logger log = Logger.getLogger(SQLEndpointQueryHistory.class.getName());
     private ApplicationProperties properties;
 
     public Boolean FindAllSPNQueryHistory() throws ParseException, JSONException {
@@ -42,7 +53,12 @@ public class SQLEndpointQueryHistory {
                 "},\n" +
                 "\"include_metrics\": \"false\" \n" +
                 "}";
-        Boolean next_page_token = SPNQueryHistory(json_payload);
+        Boolean next_page_token = null;
+        try {
+            next_page_token = SPNQueryHistory(json_payload);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
 
         return next_page_token;
     }
@@ -70,18 +86,40 @@ public class SQLEndpointQueryHistory {
                 "},\n" +
                 "\"include_metrics\": \"false\" \n" +
                 "}";
-             Boolean next_page_token = SPNQueryHistory(json_payload);
+        Boolean next_page_token = null;
+        try {
+            next_page_token = SPNQueryHistory(json_payload);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
 
-          return next_page_token;
+        return next_page_token;
 }
+    class HttpGetWithEntity extends HttpEntityEnclosingRequestBase {
+        public final static String METHOD_NAME = "GET";
 
-    public boolean SPNQueryHistory(String json_payload) throws ParseException, JSONException {
+        @Override
+        public String getMethod() {
+            return METHOD_NAME;
+        }
+    }
+
+    public boolean SPNQueryHistory(String json_payload) throws IOException {
         this.properties = new ApplicationProperties();
         String databricks_host = properties.getValue("databricks_host");
         String databricks_master_access_token = String.format("%1$s", properties.getValue("databricks_master_access_token"));
         String dbx_cluster_http_endpoint = String.format("%1$sapi/2.0/sql/history/queries", databricks_host);
-        String token = String.format("Authorization: Basic %1$s ", databricks_master_access_token);
+        String token = String.format(" Basic %1$s ", databricks_master_access_token);
         String sql_endpoint_cluster_id = properties.getValue("sql_endpoint_cluster_id");
+
+        HttpGetWithEntity httpEntity = new HttpGetWithEntity();
+        URI slots = null;
+        try {
+            slots = new URI(dbx_cluster_http_endpoint);
+        } catch (URISyntaxException e) {
+            throw new RuntimeException(e);
+        }
+
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH.mm.ss");
         String current_time = new SimpleDateFormat("yyyy-MM-dd HH.mm.ss").format(new Date());
         String end_time_ms = String.valueOf(LocalDateTime.parse(current_time, DateTimeFormatter.ofPattern("yyyy-MM-dd HH.mm.ss"))
@@ -95,40 +133,58 @@ public class SQLEndpointQueryHistory {
                 .atZone(ZoneId.systemDefault())
                 .toInstant()
                 .toEpochMilli());
-        String data= String.format(json_payload,sql_endpoint_cluster_id, start_time_ms, end_time_ms);
+        String data = String.format(json_payload, sql_endpoint_cluster_id, start_time_ms, end_time_ms);
+
         log.info("Calling Databricks SQLEndpoint Query History API /api/2.0/sql/history/queries ");
-        String[] command = {"curl", "--location", "--request", "GET", dbx_cluster_http_endpoint, "--header", "Content-type", ":", "raw", "/", "json", "--header", token, "--data-raw", data};
-        ProcessBuilder process = new ProcessBuilder(command);
-        Process p;
-        boolean next_page_token = false;
+        HttpUriRequest request = null;
         try {
-            p = process.start();
-            BufferedReader reader = new BufferedReader(new InputStreamReader(p.getInputStream()));
-            StringBuilder builder = new StringBuilder();
-            String line = null;
-            while ((line = reader.readLine()) != null) {
-                builder.append(line);
-                builder.append(System.getProperty("line.separator"));
+            request = RequestBuilder.get(slots)
+                    .setEntity(new StringEntity(data))
+                    .setHeader(HttpHeaders.CONTENT_TYPE, "application/json")
+                    .setHeader(HttpHeaders.AUTHORIZATION, token).build();
+        } catch (UnsupportedEncodingException e) {
+            throw new RuntimeException(e);
+        }
 
-            }
-            String result = builder.toString();
-            ObjectMapper mapper = new ObjectMapper();
-            Object json_obj = mapper.readValue(result, Object.class);
-            String response_output_json = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(json_obj);
-            log.info("Query History for the Service Principal SPN ");
-            log.info(response_output_json);
-            JSONObject json_object = new JSONObject(response_output_json);
-            if (json_object.has("next_page_token")) {
-                log.info("Queries are runnable on SQLEndpoint Cluster since last 1 hour for user");
-                next_page_token=true;
-            } else {
-                log.info("Queries are not runnable on SQLEndpoint Cluster since last 1 hour for user");
-                next_page_token=false;
-            }
-
+        HttpClient client = HttpClientBuilder.create().build();
+        HttpResponse response = null;
+        try {
+            response = client.execute(request);
         } catch (IOException e) {
-            log.info("error");
-            e.printStackTrace();
+            throw new RuntimeException(e);
+        }
+
+        log.info("HTTP Response for Databricks SQL Endpoint Query History API /api/2.0/sql/history/queries/ ");
+        log.info("HTTP Response Status Code " + response.getStatusLine().getStatusCode());
+        log.info("HTTP Response Status Message " + response.getStatusLine().getReasonPhrase());
+
+        BufferedReader rd = new BufferedReader(new InputStreamReader(response
+                .getEntity().getContent()));
+        String response_output;
+        boolean next_page_token = false;
+        String response_output_json = null;
+        while ((response_output = rd.readLine()) != null) {
+            if (!Objects.isNull(response_output) || response_output != null || !response_output.isEmpty() || !response_output.trim().isEmpty()) {
+                ObjectMapper mapper = new ObjectMapper();
+                Object json_obj = mapper.readValue(response_output, Object.class);
+                response_output_json = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(json_obj);
+                log.info("Query History for the Service Principal SPN ");
+                log.info(response_output_json);
+                JSONObject json_object = null;
+                try {
+                    json_object = new JSONObject(response_output);
+                } catch (JSONException e) {
+                    throw new RuntimeException(e);
+                }
+                if (json_object.has("next_page_token")) {
+                    log.info("Queries are runnable on SQLEndpoint Cluster since last " + num_hours + " hour for user");
+                    next_page_token = true;
+                } else {
+                    log.info("Queries are not runnable on SQLEndpoint Cluster since last " + num_hours + " hour for user");
+                    next_page_token = false;
+                }
+
+            }
         }
         return next_page_token;
     }
